@@ -92,10 +92,7 @@ This project is built as the **Capstone Project** for the Prodesk IT Internship 
 
 ## 🗂️ Architecture Diagram (State Tree)
 
-> | State Tree |
-|:---:|
-| State Tree |
-|:---:|
+
 | ![VitalSync Global Store architecture diagram showing four main Zustand stores: authStore managing user authentication with state for id, name, email, role, isAuthenticated, and isLoading; appointmentStore handling appointments with state for appointments array, upcomingList, and selectedId; doctorStore managing doctor availability with state for doctors array, isAvailable boolean, and todaySchedule; patientStore containing medical records with state for medicalHistory and prescriptions arrays. Each store is connected to its respective Supabase backend endpoint for data synchronization. The diagram uses color-coded boxes: blue for authStore, green for appointmentStore, purple for doctorStore, and orange for patientStore, displaying the hierarchical relationship and data flow between frontend state management and database operations.](diagram/Untitled%20Diagram.drawio.png) |
 
 

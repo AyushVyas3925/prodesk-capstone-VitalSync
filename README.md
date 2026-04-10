@@ -92,7 +92,10 @@ This project is built as the **Capstone Project** for the Prodesk IT Internship 
 
 ## 🗂️ Architecture Diagram (State Tree)
 
-> 🖼️ **State Tree Diagram:** `Untitled Diagram.drawio.png`
+> | State Tree |
+|:---:|
+| ![Desktop View](diagram\Untitled Diagram.drawio.png) |
+
 
 ### Zustand Store Structure (Planned):
 

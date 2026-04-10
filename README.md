@@ -73,7 +73,7 @@ This project is built as the **Capstone Project** for the Prodesk IT Internship 
 
 ## 🎨 UI Design (Figma)
 
-> 🔗 **Figma Link:** `https://www.figma.com/make/bNHb0WOazpOyZOQRn56KTP/Design-VitalSync-Healthcare-App?t=aFNm27O9urQmuqbm-1`
+> 🔗 **Figma Link:** https://www.figma.com/make/bNHb0WOazpOyZOQRn56KTP/Design-VitalSync-Healthcare-App?t=aFNm27O9urQmuqbm-1
 
 ### Screens Designed:
 1. **Login / Landing Page** — Split screen with role selector (Patient / Doctor)

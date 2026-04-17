@@ -1,0 +1,355 @@
+You are an expert Next.js developer. I am giving you TWO zip files:
+
+ZIP 1: "Design_VitalSync_Healthcare_App.zip" 
+→ This is my Figma-generated UI design (React + Vite + React Router)
+→ It has beautiful, complete UI pages:
+   - src/app/pages/Login.tsx (stunning split-screen login)
+   - src/app/pages/PatientDashboard.tsx (full dashboard UI)
+   - src/app/pages/DoctorDashboard.tsx (full doctor UI)
+   - src/app/components/ui/ (all Shadcn UI components)
+
+ZIP 2: "VitalSync.zip" 
+→ This is my existing Next.js 14 project (App Router)
+→ It has correct structure but EMPTY pages
+→ It has Supabase Auth already configured
+→ It has Zustand authStore ready
+→ It has middleware for protected routes
+
+---
+
+## YOUR MISSION
+Merge both zips into ONE perfect Next.js project.
+
+Take the BEAUTIFUL UI from ZIP 1 and put it into the 
+NEXT.JS STRUCTURE of ZIP 2.
+
+Fix everything so it works as a real production app.
+
+---
+
+## EXACT STEPS TO DO:
+
+### STEP 1: Understand the existing Next.js structure (ZIP 2)
+The project already has:
+- app/(auth)/login/page.tsx → EMPTY, needs UI
+- app/(auth)/register/page.tsx → EMPTY, needs UI  
+- app/dashboard/patient/page.tsx → EMPTY, needs UI
+- app/dashboard/doctor/page.tsx → EMPTY, needs UI
+- components/auth/LoginForm.tsx → basic, needs redesign
+- components/auth/RegisterForm.tsx → basic, needs redesign
+- components/shared/Navbar.tsx → basic, needs redesign
+- components/shared/Sidebar.tsx → basic, needs redesign
+- lib/supabase/client.ts → already configured ✅
+- lib/supabase/server.ts → already configured ✅
+- store/authStore.ts → already configured ✅
+- middleware.ts → already configured ✅
+- types/index.ts → already configured ✅
+
+### STEP 2: Migrate the UI from ZIP 1 to ZIP 2
+
+#### LOGIN PAGE:
+Take src/app/pages/Login.tsx from ZIP 1.
+Convert it to work in Next.js App Router:
+
+CHANGES NEEDED:
+1. Add "use client" at top
+2. Replace: import { useNavigate } from "react-router"
+   With: import { useRouter } from "next/navigation"
+3. Replace: const navigate = useNavigate()
+   With: const router = useRouter()
+4. Replace the fake handleSignIn function with REAL Supabase auth:
+
+```typescript
+const handleSignIn = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsLoading(true)
+  setError("")
+  
+  const supabase = createClient()
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) {
+    setError(error.message)
+    setIsLoading(false)
+    return
+  }
+
+  // Save to Zustand store
+  const { user } = data
+  const userRole = user.user_metadata?.role || role
+  setUser({
+    id: user.id,
+    name: user.user_metadata?.full_name || user.email || "",
+    email: user.email || "",
+    role: userRole,
+  })
+
+  // Redirect based on role
+  if (userRole === "doctor") {
+    router.push("/dashboard/doctor")
+  } else {
+    router.push("/dashboard/patient")
+  }
+}
+```
+
+5. Add state: const [isLoading, setIsLoading] = useState(false)
+6. Add state: const [error, setError] = useState("")
+7. Show error message in UI if error exists
+8. Show loading spinner on button when isLoading is true
+9. Add "Sign Up" link that goes to /register
+10. Keep ALL the original beautiful UI design exactly as is
+
+Save to: app/(auth)/login/page.tsx
+
+#### REGISTER PAGE:
+Create a new Register page with same visual style as Login.
+Fields: Full Name, Email, Password, Confirm Password, Role selector
+
+Real Supabase register:
+```typescript
+const handleRegister = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsLoading(true)
+  setError("")
+
+  if (password !== confirmPassword) {
+    setError("Passwords do not match")
+    setIsLoading(false)
+    return
+  }
+
+  const supabase = createClient()
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+        role: role,
+      }
+    }
+  })
+
+  if (error) {
+    setError(error.message)
+    setIsLoading(false)
+    return
+  }
+
+  router.push("/login?message=Check your email to confirm your account")
+}
+```
+
+Save to: app/(auth)/register/page.tsx
+
+#### PATIENT DASHBOARD:
+Take src/app/pages/PatientDashboard.tsx from ZIP 1.
+Convert to Next.js:
+1. Add "use client" at top
+2. Remove useNavigate import
+3. Add: import { useRouter } from "next/navigation"
+4. Import authStore to get real user name:
+   const { user, logout } = useAuthStore()
+5. Show real user.name in the "Good Morning" header
+6. Keep ALL the beautiful UI — appointments list, medical history
+   timeline, stats cards, sidebar — EXACTLY as is
+7. Make logout button work:
+```typescript
+   const handleLogout = async () => {
+     const supabase = createClient()
+     await supabase.auth.signOut()
+     logout() // clear zustand store
+     router.push("/login")
+   }
+```
+
+Save to: app/dashboard/patient/page.tsx
+
+#### DOCTOR DASHBOARD:
+Take src/app/pages/DoctorDashboard.tsx from ZIP 1.
+Same conversions as Patient Dashboard.
+Keep ALL the beautiful UI — availability toggle, today's schedule,
+quick stats, patient list — EXACTLY as is.
+
+Save to: app/dashboard/doctor/page.tsx
+
+### STEP 3: Fix the Folder Structure for Production Deployment
+
+Restructure to this EXACT layout:
+prodesk-capstone-VitalSync/
+│
+├── app/                          ← Next.js App Router (FRONTEND)
+│   ├── (auth)/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   └── register/
+│   │       └── page.tsx
+│   ├── dashboard/
+│   │   ├── patient/
+│   │   │   └── page.tsx
+│   │   └── doctor/
+│   │       └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx                  ← redirects to /login
+│
+├── components/                   ← Reusable Components
+│   ├── ui/                       ← Shadcn UI components
+│   ├── shared/
+│   │   ├── Sidebar.tsx
+│   │   └── Navbar.tsx
+│   └── auth/
+│       ├── LoginForm.tsx
+│       └── RegisterForm.tsx
+│
+├── lib/                          ← Utilities & Config
+│   ├── supabase/
+│   │   ├── client.ts             ← browser client
+│   │   └── server.ts             ← server client
+│   └── utils.ts
+│
+├── store/                        ← Zustand Global State
+│   └── authStore.ts
+│
+├── types/                        ← TypeScript Types
+│   └── index.ts
+│
+├── public/                       ← Static Assets
+│   └── (images, icons, etc.)
+│
+├── middleware.ts                 ← Route Protection (ROOT level)
+├── next.config.js                ← Next.js Config
+├── tailwind.config.ts            ← Tailwind Config
+├── tsconfig.json                 ← TypeScript Config
+├── postcss.config.js
+├── package.json
+├── .env.local                    ← Environment Variables (git ignored)
+├── .env.example                  ← Template for env vars (committed)
+├── .gitignore
+└── README.md
+
+### STEP 4: Fix package.json for Vercel Deployment
+
+Make sure package.json has:
+```json
+{
+  "name": "prodesk-capstone-vitalsync",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
+
+IMPORTANT: Remove "server.js" file — it is NOT needed for Vercel.
+Vercel deploys Next.js directly, no custom server needed.
+
+### STEP 5: Create .env.example file
+
+Create this file (safe to commit):
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+### STEP 6: Fix .gitignore
+
+Make sure these are ignored:
+.env.local
+.next/
+node_modules/
+
+### STEP 7: Fix next.config.js
+
+Create/update next.config.js:
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: [],
+  },
+}
+
+module.exports = nextConfig
+```
+
+### STEP 8: Update authStore.ts
+
+Make sure store/authStore.ts has this exact structure:
+```typescript
+import { create } from 'zustand'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: 'patient' | 'doctor' | null
+}
+
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  setUser: (user: User) => void
+  logout: () => void
+  setLoading: (loading: boolean) => void
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  setUser: (user) => set({ user, isAuthenticated: true }),
+  logout: () => set({ user: null, isAuthenticated: false }),
+  setLoading: (isLoading) => set({ isLoading }),
+}))
+```
+
+### STEP 9: Verify Middleware
+
+Make sure middleware.ts at ROOT level works:
+- /dashboard/* routes → check Supabase session → if no session, redirect to /login
+- /login and /register → if session exists, redirect to /dashboard/patient
+- Use @supabase/ssr for session check
+
+### STEP 10: Final Check — Vercel Deployment Ready
+
+Before finishing, confirm:
+✅ No "use server" / "use client" conflicts
+✅ All dynamic routes use "use client"  
+✅ middleware.ts is at ROOT (not inside app/)
+✅ .env.local is in .gitignore
+✅ No server.js file
+✅ package.json has correct build script
+✅ No node_modules in zip
+
+---
+
+## DESIGN RULES — DO NOT CHANGE THE UI
+The Figma design is approved. Keep:
+- Split screen login (Blue right side, white left side)
+- Blue #2563EB as primary color
+- All Shadcn UI components exactly as designed
+- Indian doctor/patient names in mock data
+- All animations and hover states
+- Sidebar layout with icons
+- Stats cards design
+- Medical history timeline design
+- Availability toggle in doctor dashboard
+
+---
+
+## WHAT TO DELIVER
+1. Show me every file you modified with the COMPLETE new code
+2. Tell me which files you deleted and why
+3. Give me the final folder structure as a tree
+4. Tell me step by step how to deploy to Vercel after you are done
+
+Start with STEP 1 — read both zips and confirm what you found.
+Then proceed step by step.

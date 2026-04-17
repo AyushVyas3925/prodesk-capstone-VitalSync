@@ -46,7 +46,7 @@ This project is built as the **Capstone Project** for the Prodesk IT Internship 
 ### 🔐 Authentication & Roles
 - Secure login/signup with **Doctor** and **Patient** role selection
 - Role-based routing — Doctors and Patients see different dashboards
-- Google OAuth via Supabase Auth
+- **Google OAuth Integration** via Supabase Auth (with role preservation)
 
 ### 🧑‍⚕️ Patient Dashboard
 - **Overview stats** — Upcoming appointments, active prescriptions, last checkup date

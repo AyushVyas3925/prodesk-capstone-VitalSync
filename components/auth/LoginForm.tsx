@@ -18,7 +18,7 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState<Role>('patient')
+  const [role, setRole] = useState<'patient' | 'doctor'>('patient')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

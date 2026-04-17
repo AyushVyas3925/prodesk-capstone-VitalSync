@@ -33,18 +33,32 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protected routes logic
-  const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
+  const pathname = request.nextUrl.pathname
+  const isDashboard = pathname.startsWith('/dashboard')
+  const isLoginPage = pathname.startsWith('/login')
+  const isRegisterPage = pathname.startsWith('/register')
+  const isAuthPage = isLoginPage || isRegisterPage
 
+  // If not logged in and trying to access a dashboard → redirect to login
   if (!user && isDashboard) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && isAuthPage) {
-    // We should ideally check the user's role from metadata and redirect accordingly
+  // If logged in and on LOGIN page → redirect to their own dashboard
+  // But do NOT redirect from the register page (Supabase creates session on signUp,
+  // so we must let the user stay on register to see the success message)
+  if (user && isLoginPage) {
     const role = user.user_metadata?.role || 'patient'
     return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
+  }
+
+  // Prevent a logged-in patient from accessing /dashboard/doctor and vice versa
+  if (user && isDashboard) {
+    const userRole = user.user_metadata?.role || 'patient'
+    const urlRole = pathname.split('/')[2] // e.g. 'patient' or 'doctor'
+    if (urlRole && urlRole !== userRole) {
+      return NextResponse.redirect(new URL(`/dashboard/${userRole}`, request.url))
+    }
   }
 
   return response

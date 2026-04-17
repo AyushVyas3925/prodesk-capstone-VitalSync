@@ -36,14 +36,24 @@ export function LoginForm() {
       if (authError) throw authError
 
       if (data.user) {
-        const userRole = (data.user.user_metadata?.role as Role) || role
+        const storedRole = data.user.user_metadata?.role as Role
+        
+        // Validation: Role selected must match stored role (if it exists)
+        if (storedRole && storedRole !== role) {
+          setError(`This account is registered as a ${storedRole}. Please select the correctly role above or use the appropriate login.`)
+          await supabase.auth.signOut()
+          setLoading(false)
+          return
+        }
+
+        const finalRole = storedRole || role // Fallback to selected role if metadata is missing
         setUser({
           id: data.user.id,
           email: data.user.email!,
           name: data.user.user_metadata?.full_name || 'User',
-          role: userRole,
+          role: finalRole,
         })
-        router.push(`/dashboard/${userRole}`)
+        router.push(`/dashboard/${finalRole}`)
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during sign in')

@@ -42,6 +42,14 @@ export function RegisterForm() {
       if (authError) throw authError
 
       if (data.user) {
+        // ── Explicitly save profile so full_name is NEVER null/email ──
+        await supabase.from('profiles').upsert({
+          id:           data.user.id,
+          full_name:    fullName,
+          role:         role,
+          is_available: false,
+        }, { onConflict: 'id' })
+
         setSuccess(true)
         setTimeout(() => router.push('/login?registered=true'), 2000)
       }

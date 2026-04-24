@@ -15,7 +15,7 @@ import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface SidebarProps {
   role: Role
@@ -28,8 +28,11 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
-  const supabase = createClient()
-  
+
+  // ── Stable client — never recreate on re-render ──
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
+
   const [isAvailable, setIsAvailable] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -49,30 +52,34 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
           .select('is_available')
           .eq('id', user.id)
           .single()
-        
+
         if (!error && data) {
-          setIsAvailable(data.is_available)
+          setIsAvailable(data.is_available ?? false)
         }
       }
       getStatus()
     }
-  }, [role, user?.id, supabase])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, user?.id]) // ← supabase intentionally excluded (stable ref)
 
   const toggleAvailability = async (checked: boolean) => {
     if (!user?.id || syncing) return
     setSyncing(true)
-    setIsAvailable(checked)
+    setIsAvailable(checked) // optimistic update
 
+    // upsert — works even if profiles row doesn't exist yet
     const { error } = await supabase
       .from('profiles')
-      .update({ is_available: checked })
-      .eq('id', user.id)
-    
+      .upsert(
+        { id: user.id, is_available: checked },
+        { onConflict: 'id' }
+      )
+
     if (error) {
-      setIsAvailable(!checked)
-      toast.error('Failed to update status')
+      setIsAvailable(!checked) // revert on failure
+      toast.error('Failed to update status: ' + error.message)
     } else {
-      toast.success(`Status updated: ${checked ? 'Online' : 'Offline'}`)
+      toast.success(`Status: ${checked ? '🟢 Online' : '⚫ Offline'}`)
     }
     setSyncing(false)
   }

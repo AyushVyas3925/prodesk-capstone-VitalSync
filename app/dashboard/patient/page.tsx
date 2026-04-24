@@ -46,6 +46,7 @@ export default function PatientDashboard() {
   const user = useAuthStore((s) => s.user)
   const supabase = createClient()
   const [mounted, setMounted] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const { appointments, loading: apptsLoading } = useAppointments()
   const [history, setHistory] = useState<any[]>([])
@@ -110,10 +111,17 @@ export default function PatientDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Sidebar role="patient" />
+      <Sidebar 
+        role="patient" 
+        mobileOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      />
 
       <div className="lg:pl-60">
-        <Navbar role="patient" />
+        <Navbar 
+          role="patient" 
+          onMobileMenuToggle={() => setMobileMenuOpen(true)}
+        />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
           {!mounted ? (

@@ -33,6 +33,7 @@ export default function DoctorDashboard() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // ── Fetch today's appointments for this doctor ────────
   const fetchAppointments = useCallback(async () => {
@@ -93,10 +94,17 @@ export default function DoctorDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Sidebar role="doctor" />
+      <Sidebar 
+        role="doctor" 
+        mobileOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      />
 
       <div className="lg:pl-60">
-        <Navbar role="doctor" />
+        <Navbar 
+          role="doctor" 
+          onMobileMenuToggle={() => setMobileMenuOpen(true)}
+        />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
           {!mounted ? (

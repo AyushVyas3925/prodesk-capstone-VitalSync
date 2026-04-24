@@ -109,91 +109,94 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
   return (
     <>
       {/* ── Mobile Drawer (Overlay + Sidebar) ── */}
-      <div 
-        className={cn(
-          "fixed inset-0 z-50 lg:hidden transition-opacity duration-300",
-          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-      >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
-        
-        {/* Drawer */}
-        <div 
-          className={cn(
-            "absolute inset-y-0 left-0 w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out flex flex-col",
-            mobileOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0]">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" fill="white" />
+      {mobileOpen && (
+        <div className="fixed inset-0 z-[9999] lg:hidden">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            onClick={onClose} 
+          />
+          
+          {/* Drawer */}
+          <div 
+            className={cn(
+              "absolute inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out",
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-white" fill="white" />
+                </div>
+                <span className="text-lg font-bold text-[#0F172A]">VitalSync</span>
               </div>
-              <span className="text-lg font-bold text-[#0F172A]">VitalSync</span>
+              <button 
+                onClick={onClose} 
+                className="p-2 -mr-2 text-[#64748B] hover:text-[#0F172A] rounded-lg hover:bg-[#F8FAFC]"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <button onClick={onClose} className="p-1 text-[#64748B] hover:text-[#0F172A]">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
 
-          {/* Nav Links */}
-          <nav className="flex-1 px-4 pt-6 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={onClose}
+            {/* Nav Links */}
+            <nav className="flex-1 px-4 pt-6 space-y-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-[#EFF6FF] text-[#2563EB]'
+                        : 'text-[#64748B] hover:bg-[#F8FAFC]'
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* Bottom Profile Section */}
+            <div className="p-4 border-t border-[#E2E8F0] space-y-3">
+              {mounted && role === 'doctor' && (
+                <button 
+                  onClick={() => toggleAvailability(!isAvailable)}
+                  disabled={syncing}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-[#EFF6FF] text-[#2563EB]'
-                      : 'text-[#64748B] hover:bg-[#F8FAFC]'
+                    "w-full flex items-center justify-between px-3 py-3 rounded-xl border transition-all",
+                    isAvailable ? "bg-[#F0FDF4] border-[#BBF7D0]" : "bg-[#F8FAFC] border-[#E2E8F0]"
                   )}
                 >
-                  <Icon className="w-5 h-5" />
-                  {item.name}
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Bottom Profile Section */}
-          <div className="p-4 border-t border-[#E2E8F0] space-y-3">
-            {mounted && role === 'doctor' && (
-              <button 
-                onClick={() => toggleAvailability(!isAvailable)}
-                disabled={syncing}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-3 rounded-xl border transition-all",
-                  isAvailable ? "bg-[#F0FDF4] border-[#BBF7D0]" : "bg-[#F8FAFC] border-[#E2E8F0]"
-                )}
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Status</span>
+                    <span className={cn("text-xs font-bold", isAvailable ? "text-[#059669]" : "text-[#64748B]")}>
+                      {isAvailable ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                  <Switch checked={isAvailable} className="pointer-events-none" />
+                </button>
+              )}
+              
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="w-full text-[#64748B] hover:text-[#EF4444]"
               >
-                <div className="flex flex-col items-start text-left">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Status</span>
-                  <span className={cn("text-xs font-bold", isAvailable ? "text-[#059669]" : "text-[#64748B]")}>
-                    {isAvailable ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-                <Switch checked={isAvailable} className="pointer-events-none" />
-              </button>
-            )}
-            
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full text-[#64748B] hover:text-[#EF4444]"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col bg-white border-r border-[#E2E8F0] z-20">

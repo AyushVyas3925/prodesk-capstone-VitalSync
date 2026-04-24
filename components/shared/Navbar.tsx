@@ -39,14 +39,15 @@ export function Navbar({
         {/* Left */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => {
-              console.log('Burger clicked');
-              window.alert('Burger Clicked');
+            onClick={(e) => {
+              e.preventDefault();
+              console.log('Opening mobile menu...');
               if (onMobileMenuToggle) onMobileMenuToggle();
             }}
-            className="lg:hidden p-2 -ml-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-lg transition-colors active:bg-[#EFF6FF]"
+            className="lg:hidden p-3 -ml-3 text-[#0F172A] hover:bg-slate-100 rounded-full transition-all active:scale-90 z-[100]"
+            aria-label="Open menu"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-7 h-7" />
           </button>
 
           {role === 'doctor' ? (

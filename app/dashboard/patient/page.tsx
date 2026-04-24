@@ -45,6 +45,7 @@ function daysAgo(dateStr: string) {
 export default function PatientDashboard() {
   const user = useAuthStore((s) => s.user)
   const supabase = createClient()
+  const [mounted, setMounted] = useState(false)
   
   const { appointments, loading: apptsLoading } = useAppointments()
   const [history, setHistory] = useState<any[]>([])
@@ -93,7 +94,10 @@ export default function PatientDashboard() {
     }
   }, [user?.id, supabase])
 
-  useEffect(() => { fetchExtraData() }, [fetchExtraData])
+  useEffect(() => {
+    setMounted(true)
+    fetchExtraData()
+  }, [fetchExtraData])
 
   const upcomingAppts = useMemo(() => {
     return appointments
@@ -112,8 +116,13 @@ export default function PatientDashboard() {
         <Navbar role="patient" />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          {!mounted ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#0F172A]">Welcome back, {user?.name?.split(' ')[0]}</h1>
               <p className="text-[#64748B]">Here is what's happening with your health today.</p>
@@ -314,7 +323,8 @@ export default function PatientDashboard() {
           <div className="grid grid-cols-1 gap-6">
             <AppointmentsChart appointments={appointments} />
           </div>
-
+            </>
+          )}
         </main>
       </div>
 

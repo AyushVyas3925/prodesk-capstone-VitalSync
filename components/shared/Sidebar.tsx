@@ -29,8 +29,10 @@ export function Sidebar({ role }: SidebarProps) {
   const supabase = createClient()
   const [isAvailable, setIsAvailable] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     if (role === 'doctor' && user?.id) {
       const getStatus = async () => {
         const { data, error } = await supabase
@@ -139,12 +141,12 @@ export function Sidebar({ role }: SidebarProps) {
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarFallback className="bg-[#2563EB] text-white text-sm font-semibold">
-                  {initials}
+                  {mounted ? initials : '...'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#0F172A] truncate">
-                  {role === 'doctor' ? `Dr. ${user?.name || 'Doctor'}` : (user?.name || 'Patient')}
+                  {mounted ? (role === 'doctor' ? `Dr. ${user?.name || 'Doctor'}` : (user?.name || 'Patient')) : 'Loading...'}
                 </p>
                 <Badge
                   className={cn(
@@ -159,7 +161,7 @@ export function Sidebar({ role }: SidebarProps) {
               </div>
             </div>
 
-            {role === 'doctor' && (
+            {mounted && role === 'doctor' && (
               <div className="px-2 pb-2">
                 <button 
                   onClick={() => toggleAvailability(!isAvailable)}

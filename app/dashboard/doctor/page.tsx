@@ -32,6 +32,7 @@ export default function DoctorDashboard() {
 
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   // ── Fetch today's appointments for this doctor ────────
   const fetchAppointments = useCallback(async () => {
@@ -63,7 +64,10 @@ export default function DoctorDashboard() {
     }
   }, [user?.id, supabase])
 
-  useEffect(() => { fetchAppointments() }, [fetchAppointments])
+  useEffect(() => {
+    setMounted(true)
+    fetchAppointments()
+  }, [fetchAppointments])
 
   const markComplete = async (id: string) => {
     const { error } = await supabase
@@ -95,11 +99,16 @@ export default function DoctorDashboard() {
         <Navbar role="doctor" />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
-          
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#0F172A]">Doctor Dashboard</h1>
-            <p className="text-[#64748B]">Managing your schedule and patients for today.</p>
-          </div>
+          {!mounted ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+            </div>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-[#0F172A]">Doctor Dashboard</h1>
+                <p className="text-[#64748B]">Managing your schedule and patients for today.</p>
+              </div>
 
           {/* ── Stat Cards ── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -254,7 +263,8 @@ export default function DoctorDashboard() {
                 </div>
               )}
             </div>
-          </div>
+            </>
+          )}
         </main>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Heart, Home, Users, CalendarDays, FileText,
-  Pill, Settings, LogOut
+  Pill, Settings, LogOut, Loader2
 } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -28,35 +28,46 @@ export function Sidebar({ role }: SidebarProps) {
   const logout = useAuthStore((s) => s.logout)
   const supabase = createClient()
   const [isAvailable, setIsAvailable] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
     if (role === 'doctor' && user?.id) {
       const getStatus = async () => {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('is_available')
           .eq('id', user.id)
           .single()
-        if (data) setIsAvailable(data.is_available)
+        
+        if (error) {
+          console.error('Error fetching status:', error)
+        } else if (data) {
+          setIsAvailable(data.is_available)
+        }
       }
       getStatus()
     }
   }, [role, user?.id, supabase])
 
   const toggleAvailability = async (checked: boolean) => {
-    if (!user?.id) return
-    setIsAvailable(checked)
+    if (!user?.id || syncing) return
+    
+    setSyncing(true)
+    setIsAvailable(checked) // Optimistic update
+
     const { error } = await supabase
       .from('profiles')
       .update({ is_available: checked })
       .eq('id', user.id)
     
     if (error) {
+      console.error('Update failed:', error)
       setIsAvailable(!checked)
       toast.error('Failed to update status')
     } else {
-      toast.success(`You are now ${checked ? 'Online' : 'Offline'}`)
+      toast.success(`Status updated: ${checked ? 'Online' : 'Offline'}`)
     }
+    setSyncing(false)
   }
 
   const handleLogout = async () => {
@@ -152,17 +163,23 @@ export function Sidebar({ role }: SidebarProps) {
               <div className="px-2 pb-2">
                 <button 
                   onClick={() => toggleAvailability(!isAvailable)}
+                  disabled={syncing}
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-3 rounded-xl border transition-all shadow-sm active:scale-95",
                     isAvailable 
                       ? "bg-[#F0FDF4] border-[#BBF7D0] hover:bg-[#DCFCE7]" 
-                      : "bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]"
+                      : "bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]",
+                    syncing && "opacity-70 cursor-not-allowed"
                   )}
                 >
                   <div className="flex flex-col items-start">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Current Status</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                      {syncing ? 'Syncing...' : 'Current Status'}
+                    </span>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      {isAvailable ? (
+                      {syncing ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-[#2563EB]" />
+                      ) : isAvailable ? (
                         <>
                           <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>

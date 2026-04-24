@@ -43,7 +43,7 @@ export function DeleteConfirmDialog({ appointmentId, doctorName, open, onOpenCha
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-white">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Appointment</AlertDialogTitle>
           <AlertDialogDescription>

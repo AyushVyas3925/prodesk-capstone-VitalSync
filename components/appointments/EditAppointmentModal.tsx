@@ -68,7 +68,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#0F172A]">Edit Appointment</DialogTitle>
         </DialogHeader>

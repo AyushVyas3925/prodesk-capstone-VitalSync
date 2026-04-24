@@ -150,16 +150,16 @@ export function Sidebar({ role }: SidebarProps) {
 
             {role === 'doctor' && (
               <div className="px-2 pb-2">
-                <div 
+                <button 
                   onClick={() => toggleAvailability(!isAvailable)}
                   className={cn(
-                    "flex items-center justify-between px-3 py-3 rounded-xl border transition-all cursor-pointer shadow-sm",
+                    "w-full flex items-center justify-between px-3 py-3 rounded-xl border transition-all shadow-sm active:scale-95",
                     isAvailable 
-                      ? "bg-[#F0FDF4] border-[#BBF7D0] shadow-[#10B981]/10" 
-                      : "bg-[#F8FAFC] border-[#E2E8F0]"
+                      ? "bg-[#F0FDF4] border-[#BBF7D0] hover:bg-[#DCFCE7]" 
+                      : "bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]"
                   )}
                 >
-                  <div className="flex flex-col">
+                  <div className="flex flex-col items-start">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Current Status</span>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {isAvailable ? (
@@ -180,11 +180,9 @@ export function Sidebar({ role }: SidebarProps) {
                   </div>
                   <Switch 
                     checked={isAvailable} 
-                    onCheckedChange={toggleAvailability}
-                    className="data-[state=checked]:bg-[#10B981]"
-                    onClick={(e) => e.stopPropagation()} // Prevent double trigger
+                    className="data-[state=checked]:bg-[#10B981] pointer-events-none"
                   />
-                </div>
+                </button>
               </div>
             )}
 

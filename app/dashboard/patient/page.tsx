@@ -114,13 +114,19 @@ export default function PatientDashboard() {
       <Sidebar 
         role="patient" 
         mobileOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
+        onClose={() => {
+          console.log('Closing mobile menu');
+          setMobileMenuOpen(false);
+        }}
       />
 
       <div className="lg:pl-60">
         <Navbar 
           role="patient" 
-          onMobileMenuToggle={() => setMobileMenuOpen(true)}
+          onMobileMenuToggle={() => {
+            console.log('Opening mobile menu');
+            setMobileMenuOpen(true);
+          }}
         />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">

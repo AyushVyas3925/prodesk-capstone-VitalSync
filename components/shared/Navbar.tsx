@@ -39,8 +39,12 @@ export function Navbar({
         {/* Left */}
         <div className="flex items-center gap-4">
           <button
-            onClick={onMobileMenuToggle}
-            className="lg:hidden text-[#64748B] hover:text-[#0F172A] transition-colors"
+            onClick={() => {
+              console.log('Burger clicked');
+              window.alert('Burger Clicked');
+              if (onMobileMenuToggle) onMobileMenuToggle();
+            }}
+            className="lg:hidden p-2 -ml-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-lg transition-colors active:bg-[#EFF6FF]"
           >
             <Menu className="w-6 h-6" />
           </button>

@@ -102,6 +102,10 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
+  useEffect(() => {
+    if (mobileOpen) console.log('Sidebar received mobileOpen: true');
+  }, [mobileOpen]);
+
   return (
     <>
       {/* ── Mobile Drawer (Overlay + Sidebar) ── */}

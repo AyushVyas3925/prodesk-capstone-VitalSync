@@ -110,19 +110,16 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
     <>
       {/* ── Mobile Drawer (Overlay + Sidebar) ── */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[9999] lg:hidden">
+        <div className="fixed inset-0 lg:hidden" style={{ zIndex: 99999 }}>
           {/* Overlay */}
           <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            className="absolute inset-0 bg-black/60" 
             onClick={onClose} 
           />
           
           {/* Drawer */}
           <div 
-            className={cn(
-              "absolute inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out",
-              mobileOpen ? "translate-x-0" : "-translate-x-full"
-            )}
+            className="absolute inset-y-0 left-0 w-72 bg-white flex flex-col border-r-4 border-red-500 shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0]">

@@ -70,15 +70,15 @@ export default function DoctorDashboard() {
     fetchAppointments()
   }, [fetchAppointments])
 
-  const markComplete = async (id: string) => {
+  const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase
       .from('patient_appointments')
-      .update({ status: 'completed' })
+      .update({ status })
       .eq('id', id)
     
     if (!error) {
       setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: 'completed' } : a))
+        prev.map((a) => (a.id === id ? { ...a, status } : a))
       )
     }
   }
@@ -216,12 +216,22 @@ export default function DoctorDashboard() {
                               </div>
 
                               <div className="flex gap-2">
-                                {appt.status === 'completed' ? (
+                                {appt.status === 'completed' && (
                                   <Badge className="bg-green-100 text-green-700 border-none">Completed</Badge>
-                                ) : (
+                                )}
+                                {appt.status === 'pending' && (
                                   <Button
                                     size="sm"
-                                    onClick={() => markComplete(appt.id)}
+                                    onClick={() => updateStatus(appt.id, 'confirmed')}
+                                    className="bg-[#2563EB] hover:bg-[#1E40AF] text-white text-xs h-8"
+                                  >
+                                    Confirm
+                                  </Button>
+                                )}
+                                {appt.status === 'confirmed' && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => updateStatus(appt.id, 'completed')}
                                     className="bg-[#10B981] hover:bg-[#059669] text-white text-xs h-8"
                                   >
                                     Complete ✓

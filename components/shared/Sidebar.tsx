@@ -93,7 +93,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
       ]
     : [
         { name: 'Dashboard',      href: '/dashboard/doctor',  icon: Home },
-        { name: 'My Patients',    href: '#',                  icon: Users },
+        { name: 'My Patients',    href: '/dashboard/doctor/patients',  icon: Users },
         { name: 'Schedule',       href: '#',                  icon: CalendarDays },
         { name: 'Prescriptions',  href: '#',                  icon: FileText },
         { name: 'Settings',       href: '#',                  icon: Settings },

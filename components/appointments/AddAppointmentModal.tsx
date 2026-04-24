@@ -28,9 +28,10 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   preselectedDoctor?: { id: string, name: string } | null
+  onSuccess?: () => void
 }
 
-export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: Props) {
+export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onSuccess }: Props) {
   const { addAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
   const [doctors, setDoctors] = useState<{id: string, full_name: string, specialty: string}[]>([])
@@ -79,6 +80,7 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: P
     try {
       await addAppointment(data)
       toast.success('Appointment booked successfully!')
+      onSuccess?.()
       onOpenChange(false)
     } catch (error: any) {
       toast.error(error.message || 'Failed to book appointment')

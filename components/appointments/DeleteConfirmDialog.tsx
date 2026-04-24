@@ -21,9 +21,10 @@ interface Props {
   doctorName: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function DeleteConfirmDialog({ appointmentId, doctorName, open, onOpenChange }: Props) {
+export function DeleteConfirmDialog({ appointmentId, doctorName, open, onOpenChange, onSuccess }: Props) {
   const { deleteAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
 
@@ -32,7 +33,8 @@ export function DeleteConfirmDialog({ appointmentId, doctorName, open, onOpenCha
     setLoading(true)
     try {
       await deleteAppointment(appointmentId)
-      toast.success('Appointment deleted successfully')
+      toast.success('Appointment deleted')
+      onSuccess?.()
       onOpenChange(false)
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete appointment')

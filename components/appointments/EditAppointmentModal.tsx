@@ -28,9 +28,10 @@ interface Props {
   appointment: PatientAppointment | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function EditAppointmentModal({ appointment, open, onOpenChange }: Props) {
+export function EditAppointmentModal({ appointment, open, onOpenChange, onSuccess }: Props) {
   const { updateAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
 
@@ -53,6 +54,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange }: Props)
     try {
       await updateAppointment(appointment.id, data)
       toast.success('Appointment updated successfully!')
+      onSuccess?.()
       onOpenChange(false)
     } catch (error: any) {
       toast.error(error.message || 'Failed to update appointment')

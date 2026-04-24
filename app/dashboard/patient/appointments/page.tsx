@@ -23,7 +23,7 @@ import { PatientAppointment } from '@/types'
 import { format } from 'date-fns'
 
 export default function AppointmentsPage() {
-  const { appointments, loading } = useAppointments()
+  const { appointments, loading, refetch } = useAppointments()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<PatientAppointment | null>(null)
@@ -155,12 +155,14 @@ export default function AppointmentsPage() {
       <AddAppointmentModal 
         open={isAddModalOpen} 
         onOpenChange={setIsAddModalOpen} 
+        onSuccess={refetch}
       />
       
       <EditAppointmentModal 
         appointment={editingAppointment} 
         open={!!editingAppointment} 
         onOpenChange={(open) => !open && setEditingAppointment(null)} 
+        onSuccess={refetch}
       />
       
       <DeleteConfirmDialog 
@@ -168,6 +170,7 @@ export default function AppointmentsPage() {
         doctorName={deletingAppointment?.name || null} 
         open={!!deletingAppointment} 
         onOpenChange={(open) => !open && setDeletingAppointment(null)} 
+        onSuccess={refetch}
       />
     </div>
   )

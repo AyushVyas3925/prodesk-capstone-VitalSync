@@ -61,8 +61,10 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: P
     // Find doctor name from the fetched list or fallback to preselected
     const foundDoc = doctors.find(d => d.id === finalDoctorId)
     const doctor_name = foundDoc ? `Dr. ${foundDoc.full_name}` : preselectedDoctor?.name || 'Unknown Doctor'
+    
     // If we know the doctor's specialty, use it, else use the form's specialty
-    const specialty = formData.get('specialty') as string
+    const formSpecialty = formData.get('specialty') as string
+    const specialty = foundDoc?.specialty || formSpecialty || 'General Medicine'
 
     const data = {
       doctor_name,
@@ -119,21 +121,24 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: P
             {preselectedDoctor && <input type="hidden" name="doctor_id" value={preselectedDoctor.id} />}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="specialty">Specialty</Label>
-            <Select name="specialty" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Cardiology">Cardiology</SelectItem>
-                <SelectItem value="Neurology">Neurology</SelectItem>
-                <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                <SelectItem value="Dermatology">Dermatology</SelectItem>
-                <SelectItem value="General Medicine">General Medicine</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Hide specialty if we already know it from the doctor */}
+          {!preselectedDoctor && (
+            <div className="space-y-2">
+              <Label htmlFor="specialty">Specialty</Label>
+              <Select name="specialty" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cardiology">Cardiology</SelectItem>
+                  <SelectItem value="Neurology">Neurology</SelectItem>
+                  <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                  <SelectItem value="Dermatology">Dermatology</SelectItem>
+                  <SelectItem value="General Medicine">General Medicine</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="scheduled_at">Date & Time</Label>

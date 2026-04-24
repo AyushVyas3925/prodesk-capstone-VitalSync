@@ -149,21 +149,42 @@ export function Sidebar({ role }: SidebarProps) {
             </div>
 
             {role === 'doctor' && (
-              <div className="flex items-center justify-between px-2 py-2 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase text-[#64748B]">Status</span>
-                  <span className={cn(
-                    "text-xs font-semibold",
-                    isAvailable ? "text-[#10B981]" : "text-[#64748B]"
-                  )}>
-                    {isAvailable ? '● Online' : '○ Offline'}
-                  </span>
+              <div className="px-2 pb-2">
+                <div 
+                  onClick={() => toggleAvailability(!isAvailable)}
+                  className={cn(
+                    "flex items-center justify-between px-3 py-3 rounded-xl border transition-all cursor-pointer shadow-sm",
+                    isAvailable 
+                      ? "bg-[#F0FDF4] border-[#BBF7D0] shadow-[#10B981]/10" 
+                      : "bg-[#F8FAFC] border-[#E2E8F0]"
+                  )}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Current Status</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      {isAvailable ? (
+                        <>
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+                          </span>
+                          <span className="text-xs font-bold text-[#059669]">Online</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-2 h-2 rounded-full bg-[#94A3B8]" />
+                          <span className="text-xs font-bold text-[#64748B]">Offline</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={isAvailable} 
+                    onCheckedChange={toggleAvailability}
+                    className="data-[state=checked]:bg-[#10B981]"
+                    onClick={(e) => e.stopPropagation()} // Prevent double trigger
+                  />
                 </div>
-                <Switch 
-                  checked={isAvailable} 
-                  onCheckedChange={toggleAvailability}
-                  className="data-[state=checked]:bg-[#10B981]"
-                />
               </div>
             )}
 

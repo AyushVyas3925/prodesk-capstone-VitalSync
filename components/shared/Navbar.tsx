@@ -56,24 +56,6 @@ export function Navbar({
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          {/* Doctor: Availability Toggle */}
-          {role === 'doctor' && (
-            <div className="flex items-center gap-3 bg-[#F8FAFC] px-4 py-2 rounded-lg border border-[#E2E8F0]">
-              <Switch
-                id="availability-toggle"
-                checked={isAvailable}
-                onCheckedChange={onToggleAvailability}
-                className="data-[state=checked]:bg-[#10B981]"
-              />
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-[#10B981]' : 'bg-[#64748B]'}`} />
-                <span className={`text-sm font-medium ${isAvailable ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
-                  {isAvailable ? "You're Online" : 'Offline'}
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Patient: Search Bar */}
           {role === 'patient' && (
             <div className="hidden md:block relative">

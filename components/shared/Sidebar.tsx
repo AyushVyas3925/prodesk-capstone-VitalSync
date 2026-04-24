@@ -67,11 +67,16 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
     setSyncing(true)
     setIsAvailable(checked) // optimistic update
 
-    // upsert — works even if profiles row doesn't exist yet
+    // upsert with ALL required fields to avoid NOT NULL constraint failures
     const { error } = await supabase
       .from('profiles')
       .upsert(
-        { id: user.id, is_available: checked },
+        {
+          id:           user.id,
+          full_name:    user.name,   // from authStore — always correct
+          role:         role,        // from sidebar prop
+          is_available: checked,
+        },
         { onConflict: 'id' }
       )
 

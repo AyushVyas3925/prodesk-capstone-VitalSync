@@ -61,12 +61,28 @@ export function LoginForm() {
         }
 
         const finalRole: 'patient' | 'doctor' = storedRole || role
+        const correctName = data.user.user_metadata?.full_name 
+          || data.user.user_metadata?.name 
+          || data.user.email 
+          || 'User'
+
         setUser({
           id: data.user.id,
           email: data.user.email!,
-          name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || 'User',
+          name: correctName,
           role: finalRole,
         })
+
+        // ── Fix existing profiles that have email as full_name ──
+        // This self-heals on every login, no manual DB fix needed
+        await supabase.from('profiles').upsert(
+          {
+            id:        data.user.id,
+            full_name: correctName,
+            role:      finalRole,
+          },
+          { onConflict: 'id' }
+        )
         clearTimeout(timer)
         router.push(`/dashboard/${finalRole}`)
       }

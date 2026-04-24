@@ -33,7 +33,7 @@ export function Sidebar({ role }: SidebarProps) {
 
   const patientNav = [
     { name: 'Dashboard',      href: '/dashboard/patient', icon: Home },
-    { name: 'Appointments',   href: '#',                  icon: CalendarDays },
+    { name: 'Appointments',   href: '/dashboard/patient/appointments', icon: CalendarDays },
     { name: 'Medical History', href: '#',                  icon: FileText },
     { name: 'Prescriptions',  href: '#',                  icon: Pill },
     { name: 'Settings',       href: '#',                  icon: Settings },

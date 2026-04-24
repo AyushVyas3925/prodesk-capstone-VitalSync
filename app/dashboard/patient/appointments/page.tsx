@@ -24,6 +24,7 @@ import { format } from 'date-fns'
 
 export default function AppointmentsPage() {
   const { appointments, loading } = useAppointments()
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<PatientAppointment | null>(null)
   const [deletingAppointment, setDeletingAppointment] = useState<{id: string, name: string} | null>(null)
@@ -45,10 +46,17 @@ export default function AppointmentsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Sidebar role="patient" />
+      <Sidebar 
+        role="patient" 
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
       
       <div className="lg:pl-60">
-        <Navbar role="patient" />
+        <Navbar 
+          role="patient"
+          onMobileMenuToggle={() => setMobileOpen(true)}
+        />
         
         <main className="p-4 lg:p-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

@@ -41,7 +41,8 @@ export function Navbar({
           <button
             onClick={(e) => {
               e.preventDefault();
-              console.log('Opening mobile menu...');
+              console.log('Dispatching toggle-sidebar event');
+              window.dispatchEvent(new CustomEvent('toggle-sidebar', { detail: true }));
               if (onMobileMenuToggle) onMobileMenuToggle();
             }}
             className="lg:hidden p-3 -ml-3 text-[#0F172A] hover:bg-slate-100 rounded-full transition-all active:scale-90 z-[100]"

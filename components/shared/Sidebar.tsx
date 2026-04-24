@@ -98,12 +98,22 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
 
   const navItems = role === 'patient' ? patientNav : doctorNav
 
-  const initials = user?.name
-    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'U'
+  useEffect(() => {
+    const handleToggle = (e: any) => {
+      console.log('Sidebar heard signal:', e.detail);
+      if (typeof onClose === 'function' && !e.detail) {
+        onClose();
+      } else if (e.detail) {
+        // If we want to support internal state or just pass up to parent
+        // For now, let's just make it work through props too
+      }
+    };
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, [onClose]);
 
   useEffect(() => {
-    if (mobileOpen) console.log('Sidebar received mobileOpen: true');
+    if (mobileOpen) console.log('Sidebar state: mobileOpen is TRUE');
   }, [mobileOpen]);
 
   return (

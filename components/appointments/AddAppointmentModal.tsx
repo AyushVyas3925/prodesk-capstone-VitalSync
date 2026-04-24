@@ -70,7 +70,7 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
     const data = {
       doctor_name,
       specialty,
-      scheduled_at: formData.get('scheduled_at') as string,
+      scheduled_at: new Date(formData.get('scheduled_at') as string).toISOString(),
       appointment_type: formData.get('appointment_type') as 'In-Person' | 'Video Call',
       notes: formData.get('notes') as string,
       status: 'pending' as const,

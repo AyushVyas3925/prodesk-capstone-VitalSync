@@ -45,7 +45,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
     const data: Partial<PatientAppointment> = {
       doctor_name: formData.get('doctor_name') as string,
       specialty: formData.get('specialty') as string,
-      scheduled_at: formData.get('scheduled_at') as string,
+      scheduled_at: new Date(formData.get('scheduled_at') as string).toISOString(),
       appointment_type: formData.get('appointment_type') as any,
       status: formData.get('status') as any,
       notes: formData.get('notes') as string,
@@ -63,10 +63,15 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
     }
   }
 
-  // Format date for datetime-local input (YYYY-MM-DDThh:mm)
-  const formattedDate = appointment.scheduled_at 
-    ? new Date(appointment.scheduled_at).toISOString().slice(0, 16) 
-    : ''
+  // Format date for datetime-local input strictly in local time (YYYY-MM-DDThh:mm)
+  const formatLocalDatetime = (dateString: string) => {
+    if (!dateString) return ''
+    const d = new Date(dateString)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+  
+  const formattedDate = formatLocalDatetime(appointment.scheduled_at)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

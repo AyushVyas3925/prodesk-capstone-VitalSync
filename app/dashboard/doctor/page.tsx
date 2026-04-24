@@ -68,7 +68,20 @@ export default function DoctorDashboard() {
   useEffect(() => {
     setMounted(true)
     fetchAppointments()
-  }, [fetchAppointments])
+
+    const channel = supabase
+      .channel('doctor_dashboard_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'patient_appointments' },
+        () => fetchAppointments()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchAppointments, supabase])
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase

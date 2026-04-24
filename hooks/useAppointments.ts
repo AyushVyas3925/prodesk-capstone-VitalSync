@@ -25,7 +25,25 @@ export function useAppointments() {
     setLoading(false)
   }, [user?.id, supabase])
 
-  useEffect(() => { fetchAppointments() }, [fetchAppointments])
+  useEffect(() => { 
+    fetchAppointments() 
+    
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('patient_appointments_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'patient_appointments' },
+        () => {
+          fetchAppointments()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchAppointments, supabase])
 
   // CREATE — add new appointment
   const addAppointment = async (

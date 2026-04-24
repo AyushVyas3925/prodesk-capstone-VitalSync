@@ -75,7 +75,20 @@ export default function MyPatientsPage() {
   useEffect(() => {
     setMounted(true)
     fetchPatients()
-  }, [fetchPatients])
+
+    const channel = supabase
+      .channel('doctor_patients_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'patient_appointments' },
+        () => fetchPatients()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchPatients, supabase])
 
   // ── Mark appointment confirmed / completed ──
   const updateStatus = async (id: string, status: string) => {

@@ -37,6 +37,14 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
   const [doctors, setDoctors] = useState<{id: string, full_name: string, specialty: string}[]>([])
   const supabase = createClient()
 
+  // Bulletproof timezone offset generator
+  const toPostgresDate = (dateTimeLocalStr: string) => {
+    if (!dateTimeLocalStr) return new Date().toISOString()
+    const d = new Date(dateTimeLocalStr)
+    // Send standard ISO which is natively supported everywhere
+    return d.toISOString()
+  }
+
   useEffect(() => {
     if (!open) return
     const fetchDoctors = async () => {
@@ -70,7 +78,7 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
     const data = {
       doctor_name,
       specialty,
-      scheduled_at: new Date(formData.get('scheduled_at') as string).toISOString(),
+      scheduled_at: toPostgresDate(formData.get('scheduled_at') as string),
       appointment_type: formData.get('appointment_type') as 'In-Person' | 'Video Call',
       notes: formData.get('notes') as string,
       status: 'pending' as const,

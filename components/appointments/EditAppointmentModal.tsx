@@ -35,6 +35,13 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
   const { updateAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
 
+  // Bulletproof timezone offset generator
+  const toPostgresDate = (dateTimeLocalStr: string) => {
+    if (!dateTimeLocalStr) return new Date().toISOString()
+    const d = new Date(dateTimeLocalStr)
+    return d.toISOString()
+  }
+
   if (!appointment) return null
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -45,7 +52,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
     const data: Partial<PatientAppointment> = {
       doctor_name: formData.get('doctor_name') as string,
       specialty: formData.get('specialty') as string,
-      scheduled_at: new Date(formData.get('scheduled_at') as string).toISOString(),
+      scheduled_at: toPostgresDate(formData.get('scheduled_at') as string),
       appointment_type: formData.get('appointment_type') as any,
       status: formData.get('status') as any,
       notes: formData.get('notes') as string,

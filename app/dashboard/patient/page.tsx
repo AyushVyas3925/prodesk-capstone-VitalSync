@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { Navbar } from '@/components/shared/Navbar'
 import { Sidebar } from '@/components/shared/Sidebar'
@@ -10,29 +10,27 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Calendar, Pill, Heart, TrendingUp,
-  CheckCircle2, Clock, Loader2
+  CheckCircle2, Clock, Loader2, Plus, ChevronRight
 } from 'lucide-react'
-import type { PatientAppointment, MedicalHistoryItem } from '@/types'
+import Link from 'next/link'
+import { useAppointments } from '@/hooks/useAppointments'
+import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
+import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
+import { format } from 'date-fns'
 
 // ────────────────────────────────────────────────────────
 // helpers
 // ────────────────────────────────────────────────────────
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
+  return format(new Date(iso), 'dd MMM yyyy')
 }
 
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-IN', {
-    hour: '2-digit', minute: '2-digit', hour12: true,
-  })
+  return format(new Date(iso), 'hh:mm a')
 }
 
 function fmtMonthYear(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-IN', {
-    month: 'short', year: 'numeric',
-  })
+  return format(new Date(dateStr), 'MMM yyyy')
 }
 
 function daysAgo(dateStr: string) {
@@ -46,53 +44,36 @@ function daysAgo(dateStr: string) {
 export default function PatientDashboard() {
   const user = useAuthStore((s) => s.user)
   const supabase = createClient()
-
-  const [appointments, setAppointments] = useState<PatientAppointment[]>([])
-  const [history, setHistory] = useState<MedicalHistoryItem[]>([])
+  
+  const { appointments, loading: apptsLoading } = useAppointments()
+  const [history, setHistory] = useState<any[]>([])
   const [prescriptionCount, setPrescriptionCount] = useState(0)
   const [lastCheckup, setLastCheckup] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(true)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
-  const fetchData = useCallback(async () => {
+  const fetchExtraData = useCallback(async () => {
     if (!user?.id) return
-    setLoading(true)
-
-    const now = new Date().toISOString()
+    setDataLoading(true)
 
     try {
-      // Upcoming appointments
-      const { data: appts, error: apptErr } = await supabase
-        .from('patient_appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .in('status', ['confirmed', 'pending'])
-        .gte('scheduled_at', now)
-        .order('scheduled_at', { ascending: true })
-        .limit(5)
-
-      if (apptErr) console.warn('patient_appointments table might be missing:', apptErr.message)
-
       // Medical history
-      const { data: hist, error: histErr } = await supabase
+      const { data: hist } = await supabase
         .from('medical_history')
         .select('*')
         .eq('patient_id', user.id)
         .order('event_date', { ascending: false })
         .limit(5)
 
-      if (histErr) console.warn('medical_history table might be missing:', histErr.message)
-
       // Active prescriptions count
-      const { count: rxCount, error: rxErr } = await supabase
+      const { count: rxCount } = await supabase
         .from('prescriptions')
         .select('*', { count: 'exact', head: true })
         .eq('patient_id', user.id)
         .eq('is_active', true)
 
-      if (rxErr) console.warn('prescriptions table might be missing:', rxErr.message)
-
       // Last checkup
-      const { data: checkup, error: checkupErr } = await supabase
+      const { data: checkup } = await supabase
         .from('medical_history')
         .select('event_date')
         .eq('patient_id', user.id)
@@ -101,22 +82,26 @@ export default function PatientDashboard() {
         .limit(1)
         .maybeSingle()
 
-      if (checkupErr) console.warn('Error fetching last checkup:', checkupErr.message)
-
-      if (appts) setAppointments(appts as PatientAppointment[])
-      if (hist) setHistory(hist as MedicalHistoryItem[])
+      if (hist) setHistory(hist)
       if (rxCount !== null) setPrescriptionCount(rxCount)
       if (checkup) setLastCheckup(checkup.event_date)
     } catch (err) {
-      console.error('Error in fetchData:', err)
+      console.error('Error in fetchExtraData:', err)
     } finally {
-      setLoading(false)
+      setDataLoading(false)
     }
-  }, [user?.id])
+  }, [user?.id, supabase])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchExtraData() }, [fetchExtraData])
 
-  const nextAppt = appointments[0]
+  const upcomingAppts = useMemo(() => {
+    return appointments
+      .filter(a => (a.status === 'pending' || a.status === 'confirmed') && new Date(a.scheduled_at) > new Date())
+      .slice(0, 3)
+  }, [appointments])
+
+  const nextAppt = upcomingAppts[0]
+  const totalLoading = apptsLoading || dataLoading
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -126,6 +111,20 @@ export default function PatientDashboard() {
         <Navbar role="patient" />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-[#0F172A]">Welcome back, {user?.name?.split(' ')[0]}</h1>
+              <p className="text-[#64748B]">Here is what's happening with your health today.</p>
+            </div>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-[#2563EB] hover:bg-[#1E40AF] shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Book Appointment
+            </Button>
+          </div>
 
           {/* ── Stat Cards ── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -135,7 +134,7 @@ export default function PatientDashboard() {
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Upcoming Appointments</p>
                   <h3 className="text-3xl font-bold text-[#0F172A]">
-                    {loading ? '—' : appointments.length}
+                    {totalLoading ? '—' : upcomingAppts.length}
                   </h3>
                   <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
                     <TrendingUp className="w-4 h-4" />
@@ -156,7 +155,7 @@ export default function PatientDashboard() {
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Active Prescriptions</p>
                   <h3 className="text-3xl font-bold text-[#0F172A]">
-                    {loading ? '—' : prescriptionCount}
+                    {totalLoading ? '—' : prescriptionCount}
                   </h3>
                   <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
                     <CheckCircle2 className="w-4 h-4" />
@@ -175,7 +174,7 @@ export default function PatientDashboard() {
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Last Checkup</p>
                   <h3 className="text-2xl font-bold text-[#0F172A]">
-                    {loading ? '—' : lastCheckup ? fmtDate(lastCheckup) : 'N/A'}
+                    {totalLoading ? '—' : lastCheckup ? fmtDate(lastCheckup) : 'N/A'}
                   </h3>
                   <div className="flex items-center gap-1 mt-2 text-[#64748B] text-sm">
                     <Clock className="w-4 h-4" />
@@ -190,31 +189,36 @@ export default function PatientDashboard() {
           </div>
 
           {/* ── Main Grid ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
             {/* Upcoming Appointments Table — 2/3 */}
             <div className="lg:col-span-2 bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
-              <div className="p-6 border-b border-[#E2E8F0]">
-                <h2 className="text-lg font-semibold text-[#0F172A]">Upcoming Appointments</h2>
+              <div className="p-6 border-b border-[#E2E8F0] flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-[#0F172A]">Recent Appointments</h2>
+                <Link 
+                  href="/dashboard/patient/appointments" 
+                  className="text-sm font-medium text-[#2563EB] hover:text-[#1E40AF] flex items-center"
+                >
+                  View All <ChevronRight className="w-4 h-4 ml-1" />
+                </Link>
               </div>
 
-              {loading ? (
+              {apptsLoading ? (
                 <div className="flex items-center justify-center h-40 text-[#64748B]">
                   <Loader2 className="animate-spin w-6 h-6 mr-2" />
                   Loading…
                 </div>
-              ) : appointments.length === 0 ? (
+              ) : upcomingAppts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-[#94A3B8]">
                   <Calendar className="w-10 h-10 mb-3 opacity-30" />
                   <p className="text-sm">No upcoming appointments</p>
-                  <p className="text-xs mt-1 text-[#CBD5E1]">Book an appointment to get started</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[#F8FAFC]">
                       <tr>
-                        {['Doctor', 'Specialty', 'Date', 'Time', 'Status', 'Action'].map((h) => (
+                        {['Doctor', 'Specialty', 'Date', 'Time', 'Status'].map((h) => (
                           <th
                             key={h}
                             className="px-6 py-3 text-left text-xs font-semibold text-[#64748B] uppercase tracking-wider"
@@ -225,14 +229,13 @@ export default function PatientDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
-                      {appointments.map((appt) => (
+                      {upcomingAppts.map((appt) => (
                         <tr key={appt.id} className="hover:bg-[#F8FAFC] transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-8 h-8">
                                 <AvatarFallback className="bg-[#EFF6FF] text-[#2563EB] text-xs font-semibold">
-                                  {appt.doctor_initials ||
-                                    appt.doctor_name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                  {appt.doctor_name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <span className="text-sm font-medium text-[#0F172A]">
@@ -250,24 +253,12 @@ export default function PatientDashboard() {
                             {fmtTime(appt.scheduled_at)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {appt.status === 'confirmed' ? (
-                              <Badge className="bg-[#D1FAE5] text-[#065F46] hover:bg-[#D1FAE5]">
-                                🟢 Confirmed
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-[#FEF3C7] text-[#92400E] hover:bg-[#FEF3C7]">
-                                🟡 Pending
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-[#2563EB] hover:text-[#1E40AF] hover:bg-[#EFF6FF] text-xs"
-                            >
-                              View Details
-                            </Button>
+                            <Badge className={`
+                              ${appt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}
+                              border-none capitalize
+                            `}>
+                              {appt.status}
+                            </Badge>
                           </td>
                         </tr>
                       ))}
@@ -281,7 +272,7 @@ export default function PatientDashboard() {
             <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-6">
               <h2 className="text-lg font-semibold text-[#0F172A] mb-6">Medical History</h2>
 
-              {loading ? (
+              {dataLoading ? (
                 <div className="flex items-center justify-center h-40 text-[#64748B]">
                   <Loader2 className="animate-spin w-5 h-5" />
                 </div>
@@ -294,16 +285,13 @@ export default function PatientDashboard() {
                 <div className="space-y-6">
                   {history.map((item, index) => (
                     <div key={item.id} className="relative">
-                      {/* Vertical connector line */}
                       {index !== history.length - 1 && (
                         <div className="absolute left-[7px] top-5 bottom-0 w-0.5 bg-[#E2E8F0]" />
                       )}
                       <div className="flex gap-4">
-                        {/* Dot */}
                         <div className="relative flex-shrink-0 mt-0.5">
                           <div className="w-4 h-4 rounded-full bg-[#2563EB] border-4 border-white shadow-sm" />
                         </div>
-                        {/* Content */}
                         <div className="flex-1 pb-1">
                           <p className="text-xs text-[#64748B] mb-1">{fmtMonthYear(item.event_date)}</p>
                           <h4 className="text-sm font-semibold text-[#0F172A] mb-0.5">{item.title}</h4>
@@ -315,10 +303,20 @@ export default function PatientDashboard() {
                 </div>
               )}
             </div>
-
           </div>
+
+          {/* ── Data Visualization ── */}
+          <div className="grid grid-cols-1 gap-6">
+            <AppointmentsChart appointments={appointments} />
+          </div>
+
         </main>
       </div>
+
+      <AddAppointmentModal 
+        open={isAddModalOpen} 
+        onOpenChange={setIsAddModalOpen} 
+      />
     </div>
   )
 }

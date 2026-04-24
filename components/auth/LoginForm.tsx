@@ -31,32 +31,49 @@ export function LoginForm() {
     setLoading(true)
     setError(null)
 
+    // Safety timeout – if nothing happens in 10s, stop loading
+    const timer = setTimeout(() => {
+      setLoading(false)
+      setError('Request timed out. Please check your internet connection and try again.')
+    }, 10000)
+
     try {
+      console.log('Attempting login for:', email)
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-      if (authError) throw authError
+      
+      console.log('Login result:', { user: data?.user?.id, error: authError?.message })
+
+      if (authError) {
+        clearTimeout(timer)
+        setError(authError.message)
+        return
+      }
 
       if (data.user) {
-        const storedRole = data.user.user_metadata?.role as Role
+        const storedRole = (data.user.user_metadata?.role as 'patient' | 'doctor') || null
         
-        // Validation: Role selected must match stored role (if it exists)
+        // Role mismatch check
         if (storedRole && storedRole !== role) {
-          setError(`This account is registered as a ${storedRole}. Please select the correctly role above or use the appropriate login.`)
+          setError(`This account is registered as a "${storedRole}". Please select "${storedRole}" above and try again.`)
           await supabase.auth.signOut()
-          setLoading(false)
+          clearTimeout(timer)
           return
         }
 
-        const finalRole = storedRole || role // Fallback to selected role if metadata is missing
+        const finalRole: 'patient' | 'doctor' = storedRole || role
         setUser({
           id: data.user.id,
           email: data.user.email!,
-          name: data.user.user_metadata?.full_name || 'User',
+          name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || 'User',
           role: finalRole,
         })
+        clearTimeout(timer)
         router.push(`/dashboard/${finalRole}`)
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during sign in')
+      clearTimeout(timer)
+      console.error('Login error:', err)
+      setError(err.message || 'An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }

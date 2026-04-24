@@ -8,45 +8,43 @@ export interface User {
 }
 
 // ── Shared ──────────────────────────────────────────────
-export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
+export type AppointmentStatus = 
+  'pending' | 'confirmed' | 'cancelled' | 'completed'
 
-// ── Doctor-side view of an appointment ──────────────────
-export interface DoctorAppointment {
-  id: string
-  patient_name: string
-  scheduled_at: string          // ISO datetime
-  appointment_type: 'In-Person' | 'Video Call'
-  room: string                  // e.g. "Room 3" | "Online"
-  status: 'completed' | 'upcoming' | 'missed'
-  patient_initials?: string
-}
+export type AppointmentType = 'In-Person' | 'Video Call'
 
-// ── Patient-side view of an appointment ─────────────────
 export interface PatientAppointment {
   id: string
+  patient_id: string
   doctor_name: string
   specialty: string
-  scheduled_at: string          // ISO datetime
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
-  doctor_initials?: string
+  scheduled_at: string
+  appointment_type: AppointmentType
+  status: AppointmentStatus
+  notes?: string
+  created_at: string
 }
 
-// ── Medical History ──────────────────────────────────────
 export interface MedicalHistoryItem {
   id: string
-  event_date: string            // ISO date (YYYY-MM-DD)
+  patient_id: string
   title: string
   doctor_name: string
+  event_date: string
   event_type: 'checkup' | 'lab' | 'treatment' | 'surgery' | 'other'
+  description?: string
+  created_at: string
 }
 
-// ── Prescription ──────────────────────────────────────────
 export interface Prescription {
   id: string
+  patient_id: string
   medication_name: string
   dosage: string
   frequency: string
   prescribed_at: string
   expires_at?: string
   is_active: boolean
+  prescribed_by?: string
+  created_at: string
 }

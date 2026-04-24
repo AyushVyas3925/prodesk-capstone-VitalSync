@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { useAppointments } from '@/hooks/useAppointments'
 import {
   Dialog,
@@ -32,20 +33,45 @@ interface Props {
 export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: Props) {
   const { addAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
+  const [doctors, setDoctors] = useState<{id: string, full_name: string, specialty: string}[]>([])
+  const supabase = createClient()
+
+  useEffect(() => {
+    if (!open) return
+    const fetchDoctors = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, specialty')
+        .eq('role', 'doctor')
+      if (data) setDoctors(data)
+    }
+    fetchDoctors()
+  }, [open, supabase])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    
+    const selectedDoctorId = formData.get('doctor_id') as string
+    // If preselectedDoctor is used, and the user didn't change it, it might just use preselectedDoctor.id
+    const finalDoctorId = selectedDoctorId || preselectedDoctor?.id
+    
+    // Find doctor name from the fetched list or fallback to preselected
+    const foundDoc = doctors.find(d => d.id === finalDoctorId)
+    const doctor_name = foundDoc ? `Dr. ${foundDoc.full_name}` : preselectedDoctor?.name || 'Unknown Doctor'
+    // If we know the doctor's specialty, use it, else use the form's specialty
+    const specialty = formData.get('specialty') as string
+
     const data = {
-      doctor_name: formData.get('doctor_name') as string,
-      specialty: formData.get('specialty') as string,
+      doctor_name,
+      specialty,
       scheduled_at: formData.get('scheduled_at') as string,
       appointment_type: formData.get('appointment_type') as 'In-Person' | 'Video Call',
       notes: formData.get('notes') as string,
       status: 'pending' as const,
-      doctor_id: preselectedDoctor?.id || undefined, // New: Link to real account
+      doctor_id: finalDoctorId, // Always links to real account now
     }
 
     try {
@@ -67,14 +93,30 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: P
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="doctor_name">Doctor Name</Label>
-            <Input 
-              id="doctor_name" 
-              name="doctor_name" 
-              placeholder="Dr. Smith" 
-              defaultValue={preselectedDoctor?.name || ''}
-              required 
-            />
+            <Label htmlFor="doctor_id">Doctor</Label>
+            {preselectedDoctor ? (
+              <Input 
+                id="doctor_id_display" 
+                value={preselectedDoctor.name} 
+                readOnly 
+                className="bg-gray-50"
+              />
+            ) : (
+              <Select name="doctor_id" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a doctor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {doctors.map(doc => (
+                    <SelectItem key={doc.id} value={doc.id}>
+                      Dr. {doc.full_name} {doc.specialty ? `— ${doc.specialty}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {/* hidden input so FormData can still grab it if preselected */}
+            {preselectedDoctor && <input type="hidden" name="doctor_id" value={preselectedDoctor.id} />}
           </div>
 
           <div className="space-y-2">

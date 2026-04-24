@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { useAppointments } from '@/hooks/useAppointments'
 import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
 import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
+import { AvailableDoctors } from '@/components/dashboard/AvailableDoctors'
 import { format } from 'date-fns'
 
 // ────────────────────────────────────────────────────────
@@ -124,6 +125,10 @@ export default function PatientDashboard() {
               <Plus className="w-4 h-4 mr-2" />
               Book Appointment
             </Button>
+          </div>
+
+          <div className="mb-8">
+            <AvailableDoctors />
           </div>
 
           {/* ── Stat Cards ── */}

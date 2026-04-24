@@ -13,6 +13,9 @@ import { cn } from '@/lib/utils'
 import { Role } from '@/types'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
+import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
+import { useState, useEffect } from 'react'
 
 interface SidebarProps {
   role: Role
@@ -24,6 +27,37 @@ export function Sidebar({ role }: SidebarProps) {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const supabase = createClient()
+  const [isAvailable, setIsAvailable] = useState(false)
+
+  useEffect(() => {
+    if (role === 'doctor' && user?.id) {
+      const getStatus = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_available')
+          .eq('id', user.id)
+          .single()
+        if (data) setIsAvailable(data.is_available)
+      }
+      getStatus()
+    }
+  }, [role, user?.id, supabase])
+
+  const toggleAvailability = async (checked: boolean) => {
+    if (!user?.id) return
+    setIsAvailable(checked)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_available: checked })
+      .eq('id', user.id)
+    
+    if (error) {
+      setIsAvailable(!checked)
+      toast.error('Failed to update status')
+    } else {
+      toast.success(`You are now ${checked ? 'Online' : 'Offline'}`)
+    }
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -113,6 +147,25 @@ export function Sidebar({ role }: SidebarProps) {
                 </Badge>
               </div>
             </div>
+
+            {role === 'doctor' && (
+              <div className="flex items-center justify-between px-2 py-2 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase text-[#64748B]">Status</span>
+                  <span className={cn(
+                    "text-xs font-semibold",
+                    isAvailable ? "text-[#10B981]" : "text-[#64748B]"
+                  )}>
+                    {isAvailable ? '● Online' : '○ Offline'}
+                  </span>
+                </div>
+                <Switch 
+                  checked={isAvailable} 
+                  onCheckedChange={toggleAvailability}
+                  className="data-[state=checked]:bg-[#10B981]"
+                />
+              </div>
+            )}
 
             <Button
               onClick={handleLogout}

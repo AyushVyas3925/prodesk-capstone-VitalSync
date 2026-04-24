@@ -26,9 +26,10 @@ import { Loader2 } from 'lucide-react'
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
+  preselectedDoctor?: { id: string, name: string } | null
 }
 
-export function AddAppointmentModal({ open, onOpenChange }: Props) {
+export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor }: Props) {
   const { addAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
 
@@ -44,6 +45,7 @@ export function AddAppointmentModal({ open, onOpenChange }: Props) {
       appointment_type: formData.get('appointment_type') as 'In-Person' | 'Video Call',
       notes: formData.get('notes') as string,
       status: 'pending' as const,
+      doctor_id: preselectedDoctor?.id || undefined, // New: Link to real account
     }
 
     try {
@@ -66,7 +68,13 @@ export function AddAppointmentModal({ open, onOpenChange }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="doctor_name">Doctor Name</Label>
-            <Input id="doctor_name" name="doctor_name" placeholder="Dr. Smith" required />
+            <Input 
+              id="doctor_name" 
+              name="doctor_name" 
+              placeholder="Dr. Smith" 
+              defaultValue={preselectedDoctor?.name || ''}
+              required 
+            />
           </div>
 
           <div className="space-y-2">

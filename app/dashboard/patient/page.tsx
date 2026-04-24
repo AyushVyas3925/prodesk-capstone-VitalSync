@@ -106,6 +106,13 @@ export default function PatientDashboard() {
       .slice(0, 3)
   }, [appointments])
 
+  // Recent = all appointments sorted by newest first (for dashboard table)
+  const recentAppts = useMemo(() => {
+    return [...appointments]
+      .sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())
+      .slice(0, 5)
+  }, [appointments])
+
   const nextAppt = upcomingAppts[0]
   const totalLoading = apptsLoading || dataLoading
 
@@ -236,10 +243,10 @@ export default function PatientDashboard() {
                   <Loader2 className="animate-spin w-6 h-6 mr-2" />
                   Loading…
                 </div>
-              ) : upcomingAppts.length === 0 ? (
+              ) : recentAppts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-[#94A3B8]">
                   <Calendar className="w-10 h-10 mb-3 opacity-30" />
-                  <p className="text-sm">No upcoming appointments</p>
+                  <p className="text-sm">No appointments yet</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -257,13 +264,13 @@ export default function PatientDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
-                      {upcomingAppts.map((appt) => (
+                      {recentAppts.map((appt) => (
                         <tr key={appt.id} className="hover:bg-[#F8FAFC] transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-8 h-8">
                                 <AvatarFallback className="bg-[#EFF6FF] text-[#2563EB] text-xs font-semibold">
-                                  {appt.doctor_name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                  {appt.doctor_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <span className="text-sm font-medium text-[#0F172A]">
@@ -282,8 +289,12 @@ export default function PatientDashboard() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Badge className={`
-                              ${appt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}
-                              border-none capitalize
+                              ${
+                                appt.status === 'confirmed'  ? 'bg-green-100 text-green-700'  :
+                                appt.status === 'completed'  ? 'bg-gray-100  text-gray-700'   :
+                                appt.status === 'cancelled'  ? 'bg-red-100   text-red-700'    :
+                                                               'bg-yellow-100 text-yellow-700'
+                              } border-none capitalize
                             `}>
                               {appt.status}
                             </Badge>

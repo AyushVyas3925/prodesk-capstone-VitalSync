@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const prompt = `You are a medical assistant AI. Write a concise 3-5 sentence clinical summary for a doctor about this patient appointment. Patient: ${patientName}. Date: ${appointmentDate}. Type: ${appointmentType}. Specialty: ${specialty}. Status: ${status}. Doctor notes: ${notes || 'None provided'}. Keep it professional and clinical.`
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -123,7 +123,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeSidebar} />
           
           <div className="absolute inset-y-0 left-0 w-72 bg-white flex flex-col shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2E8F0]">
+            <div className="flex items-center gap-2 px-6 h-16 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
                   <Heart className="w-5 h-5 text-white" fill="white" />
@@ -188,7 +188,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col bg-white border-r border-[#E2E8F0] z-20">
         <div className="flex flex-col h-full">
-          <div className="flex items-center gap-2 px-6 py-5 border-b border-[#E2E8F0]">
+          <div className="flex items-center gap-2 px-6 h-16 border-b border-[#E2E8F0]">
             <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" fill="white" />
             </div>

@@ -32,7 +32,7 @@ export function Navbar({
 
   return (
     <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-10">
-      <div className="px-4 lg:px-8 py-3 flex items-center justify-between gap-3">
+      <div className="px-4 lg:px-8 h-16 flex items-center justify-between gap-3">
         {/* Left */}
         <div className="flex items-center gap-2 min-w-0">
           {/* Burger — min 44×44px touch target */}

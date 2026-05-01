@@ -148,7 +148,7 @@ export default function MyPatientsPage() {
 
       const data = await res.json()
       if (!res.ok || data.error) {
-        toast.error('❌ Could not generate AI summary. Please try again.')
+        toast.error(`❌ ${data.error || 'Could not generate AI summary. Please try again.'}`)
         setSummaryOpen(false)
       } else {
         setSummaryText(data.summary)

@@ -10,10 +10,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import {
   Users, Clock, Calendar, CheckCircle2,
-  Loader2, Filter, Phone, Video
+  Loader2, Filter, Phone, Video, Sparkles, Copy, Check
 } from 'lucide-react'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 // ─────────────────────────────────────────────
 type FilterType = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
@@ -46,6 +54,13 @@ export default function MyPatientsPage() {
   const [mounted,      setMounted]      = useState(false)
   const [mobileOpen,   setMobileOpen]   = useState(false)
 
+  // ── AI Summarize state ──
+  const [summaryOpen,    setSummaryOpen]    = useState(false)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryText,    setSummaryText]    = useState('')
+  const [summaryAppt,    setSummaryAppt]    = useState<any | null>(null)
+  const [copied,         setCopied]         = useState(false)
+
   // ── Fetch all appointments for this doctor ──
   const fetchPatients = useCallback(async () => {
     if (!user?.id) return
@@ -62,11 +77,13 @@ export default function MyPatientsPage() {
 
       if (error) {
         console.warn('Error fetching patients:', error.message)
+        toast.error('❌ Failed to load patient appointments.')
       } else {
         setAppointments(data || [])
       }
     } catch (err) {
       console.error(err)
+      toast.error('❌ An unexpected error occurred.')
     } finally {
       setLoading(false)
     }
@@ -97,11 +114,59 @@ export default function MyPatientsPage() {
       .update({ status })
       .eq('id', id)
 
-    if (!error) {
+    if (error) {
+      toast.error('❌ Failed to update appointment status.')
+    } else {
       setAppointments((prev) =>
         prev.map((a) => (a.id === id ? { ...a, status } : a))
       )
+      toast.success(`✅ Appointment marked as ${status}.`)
     }
+  }
+
+  // ── AI Summarize ──
+  const handleSummarize = async (appt: any) => {
+    const patientName = appt.patient_profile?.full_name || 'Unknown Patient'
+    setSummaryAppt(appt)
+    setSummaryText('')
+    setSummaryOpen(true)
+    setSummaryLoading(true)
+
+    try {
+      const res = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patientName,
+          appointmentDate: fmtDate(appt.scheduled_at),
+          appointmentType: appt.appointment_type,
+          specialty:       appt.specialty || 'General',
+          status:          appt.status,
+          notes:           appt.notes || null,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        toast.error('❌ Could not generate AI summary. Please try again.')
+        setSummaryOpen(false)
+      } else {
+        setSummaryText(data.summary)
+      }
+    } catch (err) {
+      toast.error('❌ Network error while generating summary.')
+      setSummaryOpen(false)
+    } finally {
+      setSummaryLoading(false)
+    }
+  }
+
+  const handleCopy = () => {
+    if (!summaryText) return
+    navigator.clipboard.writeText(summaryText)
+    setCopied(true)
+    toast.success('✅ Summary copied to clipboard!')
+    setTimeout(() => setCopied(false), 2000)
   }
 
   // ── Filtered list ──
@@ -143,16 +208,28 @@ export default function MyPatientsPage() {
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
           {/* ── Header ── */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#0F172A]">My Patients</h1>
+            <h1 className="text-3xl font-bold text-[#0F172A] truncate">My Patients</h1>
             <p className="text-[#64748B] mt-1">
               All patients who booked appointments with you.
             </p>
           </div>
 
           {!mounted ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-            </div>
+            // ── Skeleton Loading ──
+            <>
+              {/* Stat Card Skeletons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                ))}
+              </div>
+              {/* List Skeletons */}
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                ))}
+              </div>
+            </>
           ) : (
             <>
               {/* ── Stat Cards ── */}
@@ -165,8 +242,8 @@ export default function MyPatientsPage() {
                 ].map((card) => (
                   <div key={card.label} className="bg-white rounded-xl p-4 border border-[#E2E8F0] shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wide">{card.label}</span>
-                      <div className={`w-8 h-8 rounded-full ${card.bg} flex items-center justify-center`}>
+                      <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wide truncate">{card.label}</span>
+                      <div className={`w-8 h-8 flex-shrink-0 rounded-full ${card.bg} flex items-center justify-center`}>
                         {card.icon}
                       </div>
                     </div>
@@ -177,7 +254,7 @@ export default function MyPatientsPage() {
 
               {/* ── Filter Pills ── */}
               <div className="flex items-center gap-2 mb-6 flex-wrap">
-                <Filter className="w-4 h-4 text-[#64748B]" />
+                <Filter className="w-4 h-4 text-[#64748B] flex-shrink-0" />
                 {FILTERS.map(({ key, label }) => (
                   <button
                     key={key}
@@ -226,8 +303,8 @@ export default function MyPatientsPage() {
                     return (
                       <div
                         key={appt.id}
-                        className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4 lg:p-5 
-                                   flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition-shadow"
+                        className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4 lg:p-5
+                                   flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition-shadow max-w-full"
                       >
                         {/* Avatar + Name */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -240,29 +317,40 @@ export default function MyPatientsPage() {
                             <p className="text-sm font-bold text-[#0F172A] truncate">{patientName}</p>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-xs text-[#64748B] flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
+                                <Calendar className="w-3 h-3 flex-shrink-0" />
                                 {fmtDate(appt.scheduled_at)}
                               </span>
                               <span className="text-xs text-[#64748B] flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
+                                <Clock className="w-3 h-3 flex-shrink-0" />
                                 {fmtTime(appt.scheduled_at)}
                               </span>
                               <span className="text-xs flex items-center gap-1 text-[#64748B]">
                                 {appt.appointment_type === 'Video Call'
-                                  ? <Video className="w-3 h-3" />
-                                  : <Phone className="w-3 h-3" />}
+                                  ? <Video className="w-3 h-3 flex-shrink-0" />
+                                  : <Phone className="w-3 h-3 flex-shrink-0" />}
                                 {appt.appointment_type}
                               </span>
                             </div>
                             {appt.specialty && (
-                              <p className="text-xs text-[#94A3B8] mt-0.5">{appt.specialty}</p>
+                              <p className="text-xs text-[#94A3B8] mt-0.5 truncate">{appt.specialty}</p>
                             )}
                           </div>
                         </div>
 
                         {/* Status + Actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                           <Badge className={cfg.className}>{cfg.label}</Badge>
+
+                          {/* AI Summarize Button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSummarize(appt)}
+                            className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400 gap-1"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Summarize
+                          </Button>
 
                           {appt.status === 'pending' && (
                             <Button
@@ -292,6 +380,59 @@ export default function MyPatientsPage() {
           )}
         </main>
       </div>
+
+      {/* ── AI Summary Dialog ── */}
+      <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#0F172A]">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              AI Clinical Summary
+            </DialogTitle>
+            <DialogDescription className="text-[#64748B]">
+              {summaryAppt && (
+                <>
+                  {summaryAppt.patient_profile?.full_name || 'Unknown Patient'} —{' '}
+                  {fmtDate(summaryAppt.scheduled_at)}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-2">
+            {summaryLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-full rounded" />
+                <Skeleton className="h-4 w-[90%] rounded" />
+                <Skeleton className="h-4 w-[80%] rounded" />
+                <Skeleton className="h-4 w-[95%] rounded" />
+                <Skeleton className="h-4 w-[70%] rounded" />
+                <div className="flex items-center gap-2 mt-4 text-sm text-[#64748B]">
+                  <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                  Generating AI summary…
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-[#0F172A] leading-relaxed whitespace-pre-wrap">
+                  {summaryText}
+                </div>
+                <div className="flex justify-end mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    className="gap-1.5 text-[#64748B] hover:text-[#0F172A]"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

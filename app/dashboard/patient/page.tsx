@@ -12,6 +12,7 @@ import {
   Calendar, Pill, Heart, TrendingUp,
   CheckCircle2, Clock, Loader2, Plus, ChevronRight
 } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
 import { useAppointments } from '@/hooks/useAppointments'
 import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
@@ -121,26 +122,39 @@ export default function PatientDashboard() {
       <Sidebar 
         role="patient" 
         mobileOpen={mobileMenuOpen}
-        onClose={() => {
-          console.log('Closing mobile menu');
-          setMobileMenuOpen(false);
-        }}
+        onClose={() => setMobileMenuOpen(false)}
       />
 
       <div className="lg:pl-60">
         <Navbar 
           role="patient" 
-          onMobileMenuToggle={() => {
-            console.log('Opening mobile menu');
-            setMobileMenuOpen(true);
-          }}
+          onMobileMenuToggle={() => setMobileMenuOpen(true)}
         />
 
         <main className="p-4 lg:p-8 pb-24 lg:pb-8">
           {!mounted ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-            </div>
+            // ── Skeleton Loading ──
+            <>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-48 rounded" />
+                  <Skeleton className="h-4 w-72 rounded" />
+                </div>
+                <Skeleton className="h-10 w-40 rounded-lg" />
+              </div>
+              <Skeleton className="h-32 w-full rounded-xl mb-8" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-3">
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+                </div>
+              </div>
+            </>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

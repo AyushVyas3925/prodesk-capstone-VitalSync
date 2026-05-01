@@ -58,7 +58,7 @@ export default function AppointmentsPage() {
           onMobileMenuToggle={() => setMobileOpen(true)}
         />
         
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 pb-20 lg:pb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-[#0F172A]">My Appointments</h1>

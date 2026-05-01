@@ -58,6 +58,7 @@ export default function MyPatientsPage() {
   const [summaryOpen,    setSummaryOpen]    = useState(false)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryText,    setSummaryText]    = useState('')
+  const [summarySource,  setSummarySource]  = useState<'ai'|'template'>('ai')
   const [summaryAppt,    setSummaryAppt]    = useState<any | null>(null)
   const [copied,         setCopied]         = useState(false)
 
@@ -124,15 +125,12 @@ export default function MyPatientsPage() {
     }
   }
 
-  const [rateLimited, setRateLimited] = useState(false)
-  const [rlCountdown, setRlCountdown] = useState(0)
-
   // ── AI Summarize ──
   const handleSummarize = async (appt: any) => {
-    if (rateLimited) return
     const patientName = appt.patient_profile?.full_name || 'Unknown Patient'
     setSummaryAppt(appt)
     setSummaryText('')
+    setSummarySource('ai')
     setSummaryOpen(true)
     setSummaryLoading(true)
 
@@ -151,22 +149,12 @@ export default function MyPatientsPage() {
       })
 
       const data = await res.json()
-      if (res.status === 429) {
-        setSummaryOpen(false)
-        setRateLimited(true)
-        setRlCountdown(60)
-        toast.error('⏳ Rate limit hit. Summarize will re-enable in 60 s. Try again after 5:30 AM IST for full reset.')
-        const interval = setInterval(() => {
-          setRlCountdown((prev) => {
-            if (prev <= 1) { clearInterval(interval); setRateLimited(false); return 0 }
-            return prev - 1
-          })
-        }, 1000)
-      } else if (!res.ok || data.error) {
-        toast.error(`❌ ${data.error || 'Could not generate AI summary. Please try again.'}`)
+      if (!res.ok || data.error) {
+        toast.error('❌ Network error. Please try again.')
         setSummaryOpen(false)
       } else {
         setSummaryText(data.summary)
+        setSummarySource(data.source === 'template' ? 'template' : 'ai')
       }
     } catch (err) {
       toast.error('❌ Network error while generating summary.')
@@ -361,13 +349,10 @@ export default function MyPatientsPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleSummarize(appt)}
-                            disabled={rateLimited}
-                            className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400 gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400 gap-1"
                           >
-                            {rateLimited
-                              ? <><Loader2 className="w-3 h-3 animate-spin" />{rlCountdown}s</>
-                              : <><Sparkles className="w-3 h-3" />Summarize</>
-                            }
+                            <Sparkles className="w-3 h-3" />
+                            Summarize
                           </Button>
 
                           {appt.status === 'pending' && (
@@ -427,11 +412,18 @@ export default function MyPatientsPage() {
                 <Skeleton className="h-4 w-[70%] rounded" />
                 <div className="flex items-center gap-2 mt-4 text-sm text-[#64748B]">
                   <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                  Generating AI summary…
+                  Generating summary…
                 </div>
               </div>
             ) : (
               <>
+                {/* Source badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  {summarySource === 'ai'
+                    ? <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full"><Sparkles className="w-2.5 h-2.5" />AI Generated</span>
+                    : <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">📋 Template Summary</span>
+                  }
+                </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-[#0F172A] leading-relaxed whitespace-pre-wrap">
                   {summaryText}
                 </div>

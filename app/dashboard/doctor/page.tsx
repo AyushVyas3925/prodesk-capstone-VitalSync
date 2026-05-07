@@ -120,7 +120,7 @@ export default function DoctorDashboard() {
           onMobileMenuToggle={() => setMobileMenuOpen(true)}
         />
 
-        <main className="p-4 lg:p-8 pb-24 lg:pb-8">
+        <div className="p-4 lg:p-8 pb-24 lg:pb-8">
           {!mounted ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
@@ -167,7 +167,7 @@ export default function DoctorDashboard() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-[#64748B] text-sm mb-1">{card.label}</p>
-                        <h3 className="text-3xl font-bold text-[#0F172A]">{card.value}</h3>
+                        <p className="text-3xl font-bold text-[#0F172A]">{card.value}</p>
                         <div className={`flex items-center gap-1 mt-2 text-sm ${card.subColor}`}>
                           {card.subIcon}
                           <span>{card.sub}</span>
@@ -298,7 +298,7 @@ export default function DoctorDashboard() {
               </div>
             </>
           )}
-        </main>
+        </div>
       </div>
     </div>
     </main>

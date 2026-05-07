@@ -31,6 +31,7 @@ const AvailableDoctors = dynamic(
   () => import('@/components/dashboard/AvailableDoctors').then((mod) => mod.AvailableDoctors),
   { ssr: false, loading: () => <Skeleton className="h-32 w-full rounded-xl" /> }
 )
+
 import { format } from 'date-fns'
 
 // ────────────────────────────────────────────────────────
@@ -145,7 +146,7 @@ export default function PatientDashboard() {
           onMobileMenuToggle={() => setMobileMenuOpen(true)}
         />
 
-        <main className="p-4 lg:p-8 pb-24 lg:pb-8">
+        <div className="p-4 lg:p-8 pb-24 lg:pb-8">
           {!mounted ? (
             // ── Skeleton Loading ──
             <>
@@ -196,9 +197,9 @@ export default function PatientDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Upcoming Appointments</p>
-                  <h3 className="text-3xl font-bold text-[#0F172A]">
+                  <p className="text-3xl font-bold text-[#0F172A]">
                     {totalLoading ? '—' : upcomingAppts.length}
-                  </h3>
+                  </p>
                   <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
                     <TrendingUp className="w-4 h-4" />
                     <span>
@@ -217,9 +218,9 @@ export default function PatientDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Active Prescriptions</p>
-                  <h3 className="text-3xl font-bold text-[#0F172A]">
+                  <p className="text-3xl font-bold text-[#0F172A]">
                     {totalLoading ? '—' : prescriptionCount}
-                  </h3>
+                  </p>
                   <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{prescriptionCount > 0 ? 'Active medications' : 'No active Rx'}</span>
@@ -236,9 +237,9 @@ export default function PatientDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[#64748B] text-sm mb-1">Last Checkup</p>
-                  <h3 className="text-2xl font-bold text-[#0F172A]">
+                  <p className="text-2xl font-bold text-[#0F172A]">
                     {totalLoading ? '—' : lastCheckup ? fmtDate(lastCheckup) : 'N/A'}
-                  </h3>
+                  </p>
                   <div className="flex items-center gap-1 mt-2 text-[#64748B] text-sm">
                     <Clock className="w-4 h-4" />
                     <span>{lastCheckup ? daysAgo(lastCheckup) : 'No record'}</span>
@@ -344,7 +345,7 @@ export default function PatientDashboard() {
                   <Loader2 className="animate-spin w-5 h-5" />
                 </div>
               ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-[#94A3B8] text-sm">
+                <div className="flex flex-col items-center justify-center h-40 text-[#64748B] text-sm">
                   <Heart className="w-8 h-8 mb-2 opacity-30" />
                   <p>No medical history yet</p>
                 </div>
@@ -378,7 +379,7 @@ export default function PatientDashboard() {
           </div>
             </>
           )}
-        </main>
+        </div>
       </div>
 
       <AddAppointmentModal 

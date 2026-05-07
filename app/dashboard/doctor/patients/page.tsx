@@ -209,7 +209,7 @@ export default function MyPatientsPage() {
           onMobileMenuToggle={() => setMobileOpen(true)}
         />
 
-        <main className="p-4 lg:p-8 pb-24 lg:pb-8">
+        <div className="p-4 lg:p-8 pb-24 lg:pb-8">
           {/* ── Header ── */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#0F172A] truncate">My Patients</h1>
@@ -291,7 +291,7 @@ export default function MyPatientsPage() {
                   <div className="w-20 h-20 bg-[#EFF6FF] rounded-full flex items-center justify-center mb-4">
                     <Users className="w-10 h-10 text-[#2563EB] opacity-40" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#0F172A]">No patients found</h3>
+                  <h2 className="text-lg font-semibold text-[#0F172A]">No patients found</h2>
                   <p className="text-[#64748B] mt-1 text-sm max-w-xs">
                     {filter === 'all'
                       ? 'No patients have booked with you yet. Make sure your profile is set to Online.'
@@ -336,7 +336,7 @@ export default function MyPatientsPage() {
                               </span>
                             </div>
                             {appt.specialty && (
-                              <p className="text-xs text-[#94A3B8] mt-0.5 truncate">{appt.specialty}</p>
+                              <p className="text-xs text-[#64748B] mt-0.5 truncate">{appt.specialty}</p>
                             )}
                           </div>
                         </div>
@@ -382,7 +382,7 @@ export default function MyPatientsPage() {
               )}
             </>
           )}
-        </main>
+        </div>
       </div>
 
       {/* ── AI Summary Dialog ── */}

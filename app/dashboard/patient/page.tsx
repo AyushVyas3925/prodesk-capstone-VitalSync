@@ -15,9 +15,22 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
 import { useAppointments } from '@/hooks/useAppointments'
-import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
-import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
-import { AvailableDoctors } from '@/components/dashboard/AvailableDoctors'
+import dynamic from 'next/dynamic'
+
+const AppointmentsChart = dynamic(
+  () => import('@/components/charts/AppointmentsChart').then((mod) => mod.AppointmentsChart),
+  { ssr: false, loading: () => <Skeleton className="h-[300px] w-full rounded-xl" /> }
+)
+
+const AddAppointmentModal = dynamic(
+  () => import('@/components/appointments/AddAppointmentModal').then((mod) => mod.AddAppointmentModal),
+  { ssr: false }
+)
+
+const AvailableDoctors = dynamic(
+  () => import('@/components/dashboard/AvailableDoctors').then((mod) => mod.AvailableDoctors),
+  { ssr: false, loading: () => <Skeleton className="h-32 w-full rounded-xl" /> }
+)
 import { format } from 'date-fns'
 
 // ────────────────────────────────────────────────────────

@@ -1,15 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthSync } from "@/components/shared/AuthSync";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-sans' });
+const inter = Inter({ subsets: ["latin"], variable: '--font-sans', display: 'swap' });
 
 export const metadata: Metadata = {
   title: "VitalSync - Healthcare Dashboard",
   description: "A modern healthcare dashboard for patients and doctors.",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

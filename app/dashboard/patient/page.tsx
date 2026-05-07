@@ -165,7 +165,7 @@ export default function PatientDashboard() {
             </div>
             <Button 
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-[#2563EB] hover:bg-[#1E40AF] shadow-sm"
+              className="bg-[#2563EB] hover:bg-[#1E40AF] text-white shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Book Appointment
@@ -259,7 +259,7 @@ export default function PatientDashboard() {
                   Loading…
                 </div>
               ) : recentAppts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-[#94A3B8]">
+                <div className="flex flex-col items-center justify-center h-40 text-[#64748B]">
                   <Calendar className="w-10 h-10 mb-3 opacity-30" />
                   <p className="text-sm">No appointments yet</p>
                 </div>
@@ -348,7 +348,7 @@ export default function PatientDashboard() {
                         </div>
                         <div className="flex-1 pb-1">
                           <p className="text-xs text-[#64748B] mb-1">{fmtMonthYear(item.event_date)}</p>
-                          <h4 className="text-sm font-semibold text-[#0F172A] mb-0.5">{item.title}</h4>
+                          <h3 className="text-sm font-semibold text-[#0F172A] mb-0.5">{item.title}</h3>
                           <p className="text-xs text-[#64748B]">{item.doctor_name}</p>
                         </div>
                       </div>

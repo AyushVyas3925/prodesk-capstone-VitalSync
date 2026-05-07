@@ -106,7 +106,8 @@ export default function DoctorDashboard() {
   const nextAppt = appointments.find((a) => a.status === 'pending' || a.status === 'confirmed')
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <main>
+      <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar 
         role="doctor" 
         mobileOpen={mobileMenuOpen}
@@ -300,6 +301,7 @@ export default function DoctorDashboard() {
         </main>
       </div>
     </div>
+    </main>
   )
 }
 

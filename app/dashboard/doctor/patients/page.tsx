@@ -195,7 +195,8 @@ export default function MyPatientsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <main>
+      <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar
         role="doctor"
         mobileOpen={mobileOpen}
@@ -444,5 +445,6 @@ export default function MyPatientsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </main>
   )
 }

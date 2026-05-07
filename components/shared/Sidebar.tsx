@@ -130,7 +130,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
                 </div>
                 <span className="text-lg font-bold text-[#0F172A]">VitalSync</span>
               </div>
-              <button onClick={closeSidebar} className="p-2 text-[#64748B] hover:text-[#0F172A]">
+              <button onClick={closeSidebar} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#64748B] hover:text-[#0F172A]">
                 <X className="w-6 h-6" />
               </button>
             </div>

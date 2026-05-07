@@ -45,7 +45,8 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <main>
+      <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar 
         role="patient" 
         mobileOpen={mobileOpen}
@@ -173,5 +174,6 @@ export default function AppointmentsPage() {
         onSuccess={refetch}
       />
     </div>
+    </main>
   )
 }

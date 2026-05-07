@@ -118,7 +118,8 @@ export default function PatientDashboard() {
   const totalLoading = apptsLoading || dataLoading
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <main>
+      <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar 
         role="patient" 
         mobileOpen={mobileMenuOpen}
@@ -372,5 +373,6 @@ export default function PatientDashboard() {
         onOpenChange={setIsAddModalOpen} 
       />
     </div>
+    </main>
   )
 }

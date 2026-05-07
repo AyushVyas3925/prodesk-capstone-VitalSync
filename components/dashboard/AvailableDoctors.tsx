@@ -89,7 +89,7 @@ export function AvailableDoctors() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    <h4 className="text-sm font-bold text-[#0F172A] truncate">Dr. {doctor.full_name}</h4>
+                    <h3 className="text-sm font-bold text-[#0F172A] truncate">Dr. {doctor.full_name}</h3>
                   </div>
                   <p className="text-xs text-[#64748B] truncate">{doctor.specialty || 'General Medicine'}</p>
                 </div>

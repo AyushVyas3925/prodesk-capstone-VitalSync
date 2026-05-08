@@ -61,30 +61,37 @@ export default function PatientDashboard() {
     setDataLoading(true)
 
     try {
-      // Medical history
-      const { data: hist } = await supabase
-        .from('medical_history')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('event_date', { ascending: false })
-        .limit(5)
-
-      // Active prescriptions count
-      const { count: rxCount } = await supabase
-        .from('prescriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('patient_id', user.id)
-        .eq('is_active', true)
-
-      // Last checkup
-      const { data: checkup } = await supabase
-        .from('medical_history')
-        .select('event_date')
-        .eq('patient_id', user.id)
-        .eq('event_type', 'checkup')
-        .order('event_date', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      // Parallelize Supabase requests to improve LCP and data loading speed
+      const [
+        { data: hist },
+        { count: rxCount },
+        { data: checkup }
+      ] = await Promise.all([
+        // Medical history
+        supabase
+          .from('medical_history')
+          .select('*')
+          .eq('patient_id', user.id)
+          .order('event_date', { ascending: false })
+          .limit(5),
+          
+        // Active prescriptions count
+        supabase
+          .from('prescriptions')
+          .select('*', { count: 'exact', head: true })
+          .eq('patient_id', user.id)
+          .eq('is_active', true),
+          
+        // Last checkup
+        supabase
+          .from('medical_history')
+          .select('event_date')
+          .eq('patient_id', user.id)
+          .eq('event_type', 'checkup')
+          .order('event_date', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ])
 
       if (hist) setHistory(hist)
       if (rxCount !== null) setPrescriptionCount(rxCount)

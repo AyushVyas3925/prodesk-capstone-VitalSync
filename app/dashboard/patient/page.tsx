@@ -18,6 +18,7 @@ import { useAppointments } from '@/hooks/useAppointments'
 import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
 import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
 import { AvailableDoctors } from '@/components/dashboard/AvailableDoctors'
+import { useAvailableDoctors } from '@/hooks/useAvailableDoctors'
 import { format } from 'date-fns'
 
 // ────────────────────────────────────────────────────────
@@ -46,10 +47,10 @@ function daysAgo(dateStr: string) {
 export default function PatientDashboard() {
   const user = useAuthStore((s) => s.user)
   const supabase = createClient()
-  const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const { appointments, loading: apptsLoading } = useAppointments()
+  const { doctors, loading: docsLoading } = useAvailableDoctors()
   const [history, setHistory] = useState<any[]>([])
   const [prescriptionCount, setPrescriptionCount] = useState(0)
   const [lastCheckup, setLastCheckup] = useState<string | null>(null)
@@ -104,7 +105,6 @@ export default function PatientDashboard() {
   }, [user?.id, supabase])
 
   useEffect(() => {
-    setMounted(true)
     fetchExtraData()
   }, [fetchExtraData])
 
@@ -140,36 +140,13 @@ export default function PatientDashboard() {
         />
 
         <div className="p-4 lg:p-8 pb-24 lg:pb-8">
-          {!mounted ? (
-            // ── Skeleton Loading ──
-            <>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 min-h-[68px]">
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-48 rounded" />
-                  <Skeleton className="h-4 w-72 rounded" />
-                </div>
-                <Skeleton className="h-10 w-40 rounded-lg" />
-              </div>
-              <div className="mb-8 min-h-[300px]">
-                <Skeleton className="h-[300px] w-full rounded-xl" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-[132px] w-full rounded-xl" />)}
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-3">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-                </div>
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 min-h-[68px]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 min-h-[68px]">
             <div>
-              <h1 className="text-3xl font-bold text-[#0F172A]">Welcome back, {user?.name?.split(' ')[0]}</h1>
+              {user ? (
+                <h1 className="text-3xl font-bold text-[#0F172A]">Welcome back, {user.name?.split(' ')[0]}</h1>
+              ) : (
+                <Skeleton className="h-9 w-64 rounded-md mb-1" />
+              )}
               <p className="text-[#64748B]">Here is what's happening with your health today.</p>
             </div>
             <Button 
@@ -182,7 +159,7 @@ export default function PatientDashboard() {
           </div>
 
           <div className="mb-8 min-h-[300px]">
-            <AvailableDoctors />
+            <AvailableDoctors doctors={doctors} loading={docsLoading} />
           </div>
 
           {/* ── Stat Cards ── */}
@@ -372,8 +349,6 @@ export default function PatientDashboard() {
           <div className="grid grid-cols-1 gap-6">
             <AppointmentsChart appointments={appointments} />
           </div>
-            </>
-          )}
         </div>
       </div>
 

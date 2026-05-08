@@ -19,11 +19,6 @@ export function Navbar({
   onMobileMenuToggle,
 }: NavbarProps) {
   const user = useAuthStore((s) => s.user)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const greeting = () => {
     const hr = new Date().getHours()
@@ -32,7 +27,7 @@ export function Navbar({
     return 'Good Evening'
   }
 
-  const initials = mounted && user?.name
+  const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
@@ -63,7 +58,7 @@ export function Navbar({
             </h1>
           ) : (
             <h1 className="text-base lg:text-xl font-semibold text-[#0F172A] truncate" suppressHydrationWarning>
-              {mounted ? `${greeting()}, ${user?.name?.split(' ')[0] || 'User'} 👋` : 'Welcome 👋'}
+              {user ? `${greeting()}, ${user.name?.split(' ')[0] || 'User'} 👋` : 'Welcome 👋'}
             </h1>
           )}
         </div>

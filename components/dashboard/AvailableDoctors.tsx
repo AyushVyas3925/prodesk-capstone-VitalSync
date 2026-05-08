@@ -9,41 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Loader2, User, Activity } from 'lucide-react'
 import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
 
-export function AvailableDoctors() {
-  const [doctors, setDoctors] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
+interface Props {
+  doctors: Profile[]
+  loading: boolean
+}
+
+export function AvailableDoctors({ doctors, loading }: Props) {
   const [selectedDoctor, setSelectedDoctor] = useState<{id: string, name: string} | null>(null)
-  const supabase = createClient()
-
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'doctor')
-        .eq('is_available', true)
-      
-      if (data) setDoctors(data)
-      setLoading(false)
-    }
-
-    fetchDoctors()
-
-    // Real-time subscription to status changes
-    const channel = supabase
-      .channel('online-doctors')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'profiles',
-        filter: 'role=eq.doctor'
-      }, () => {
-        fetchDoctors()
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [supabase])
 
   if (loading) return (
     <div className="space-y-4">

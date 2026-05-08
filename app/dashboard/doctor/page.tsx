@@ -149,18 +149,18 @@ export default function DoctorDashboard() {
                     value: completedCount,
                     sub: 'Great progress!',
                     subIcon: <CheckCircle2 className="w-4 h-4" />,
-                    subColor: 'text-[#059669]',
+                    subColor: 'text-[#10B981]',
                     bgIcon: 'bg-[#F0FDF4]',
-                    icon: <CheckCircle2 className="w-6 h-6 text-[#059669]" />,
+                    icon: <CheckCircle2 className="w-6 h-6 text-[#10B981]" />,
                   },
                   {
                     label: 'Upcoming',
                     value: remainingCount,
                     sub: nextAppt ? `Next: ${fmtTime(nextAppt.scheduled_at)}` : 'No more today',
                     subIcon: <Clock className="w-4 h-4" />,
-                    subColor: 'text-[#B45309]',
+                    subColor: 'text-[#F59E0B]',
                     bgIcon: 'bg-[#FEF3C7]',
-                    icon: <Clock className="w-6 h-6 text-[#B45309]" />,
+                    icon: <Clock className="w-6 h-6 text-[#F59E0B]" />,
                   },
                 ].map((card) => (
                   <div key={card.label} className="bg-white rounded-xl p-6 border border-[#E2E8F0] shadow-sm">
@@ -197,7 +197,7 @@ export default function DoctorDashboard() {
                         Loading…
                       </div>
                     ) : appointments.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-40 text-[#64748B] text-center">
+                      <div className="flex flex-col items-center justify-center h-40 text-[#94A3B8] text-center">
                         <Calendar className="w-10 h-10 mb-3 opacity-30" />
                         <p className="text-sm">No appointments for today</p>
                       </div>

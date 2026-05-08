@@ -50,8 +50,8 @@ export function AppointmentsChart({ appointments }: Props) {
         <p className="text-sm text-[#64748B]">Your appointment history by month</p>
       </div>
       
-      <div className="h-[250px] w-full">
-        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+      <div className="h-[250px] w-full" style={{ minWidth: 0 }}>
+        <ResponsiveContainer width="99%" height={250}>
           <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
             <XAxis 

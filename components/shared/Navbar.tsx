@@ -78,7 +78,7 @@ export function Navbar({
           )}
 
           {/* Notifications */}
-          <button className="relative min-w-[44px] min-h-[44px] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl transition-colors">
+          <button aria-label="Notifications" className="relative min-w-[44px] min-h-[44px] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full" />
           </button>

@@ -172,7 +172,7 @@ export default function PatientDashboard() {
                   <p className="text-3xl font-bold text-[#0F172A]">
                     {totalLoading ? '—' : upcomingAppts.length}
                   </p>
-                  <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
+                  <div className="flex items-center gap-1 mt-2 text-[#047857] text-sm">
                     <TrendingUp className="w-4 h-4" />
                     <span>
                       {nextAppt ? `Next: ${fmtDate(nextAppt.scheduled_at)}` : 'No upcoming'}
@@ -193,7 +193,7 @@ export default function PatientDashboard() {
                   <p className="text-3xl font-bold text-[#0F172A]">
                     {totalLoading ? '—' : prescriptionCount}
                   </p>
-                  <div className="flex items-center gap-1 mt-2 text-[#10B981] text-sm">
+                  <div className="flex items-center gap-1 mt-2 text-[#047857] text-sm">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{prescriptionCount > 0 ? 'Active medications' : 'No active Rx'}</span>
                   </div>

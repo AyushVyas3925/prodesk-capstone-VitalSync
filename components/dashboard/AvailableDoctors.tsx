@@ -91,7 +91,7 @@ export function AvailableDoctors({ doctors, loading }: Props) {
               </div>
               <Button 
                 onClick={() => setSelectedDoctor({ id: doctor.id, name: `Dr. ${doctor.full_name}` })}
-                className="w-full bg-[#2563EB] hover:bg-[#1E40AF] text-xs h-8"
+                className="w-full bg-[#2563EB] hover:bg-[#1E40AF] text-white text-xs h-8"
               >
                 Book Appointment
               </Button>

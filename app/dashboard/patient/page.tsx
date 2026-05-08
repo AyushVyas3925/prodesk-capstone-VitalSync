@@ -136,16 +136,18 @@ export default function PatientDashboard() {
           {!mounted ? (
             // ── Skeleton Loading ──
             <>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 min-h-[68px]">
                 <div className="space-y-2">
                   <Skeleton className="h-8 w-48 rounded" />
                   <Skeleton className="h-4 w-72 rounded" />
                 </div>
                 <Skeleton className="h-10 w-40 rounded-lg" />
               </div>
-              <Skeleton className="h-32 w-full rounded-xl mb-8" />
+              <div className="mb-8 min-h-[300px]">
+                <Skeleton className="h-[300px] w-full rounded-xl" />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-[132px] w-full rounded-xl" />)}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-3">
@@ -158,7 +160,7 @@ export default function PatientDashboard() {
             </>
           ) : (
             <>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 min-h-[68px]">
             <div>
               <h1 className="text-3xl font-bold text-[#0F172A]">Welcome back, {user?.name?.split(' ')[0]}</h1>
               <p className="text-[#64748B]">Here is what's happening with your health today.</p>
@@ -172,7 +174,7 @@ export default function PatientDashboard() {
             </Button>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-8 min-h-[300px]">
             <AvailableDoctors />
           </div>
 

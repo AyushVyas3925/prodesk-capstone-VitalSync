@@ -46,10 +46,33 @@ export function AvailableDoctors() {
   }, [supabase])
 
   if (loading) return (
-    <div className="flex items-center gap-4 py-4 overflow-x-auto no-scrollbar">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="min-w-[200px] h-32 bg-gray-100 animate-pulse rounded-xl" />
-      ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-[#0F172A] flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </span>
+          Doctors Online Now
+        </h2>
+      </div>
+
+      <div className="flex items-center gap-4 py-2 overflow-x-auto no-scrollbar">
+        {[1, 2, 3].map(i => (
+          <Card key={i} className="min-w-[240px] border-[#E2E8F0] shadow-sm bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
+                  <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-1/2" />
+                </div>
+              </div>
+              <div className="w-full h-8 bg-gray-100 animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 

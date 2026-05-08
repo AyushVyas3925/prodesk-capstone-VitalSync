@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Bell, Search, Menu } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
@@ -18,6 +19,11 @@ export function Navbar({
   onMobileMenuToggle,
 }: NavbarProps) {
   const user = useAuthStore((s) => s.user)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const greeting = () => {
     const hr = new Date().getHours()
@@ -26,7 +32,7 @@ export function Navbar({
     return 'Good Evening'
   }
 
-  const initials = user?.name
+  const initials = mounted && user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
@@ -56,8 +62,8 @@ export function Navbar({
               Today&apos;s Overview
             </h1>
           ) : (
-            <h1 className="text-base lg:text-xl font-semibold text-[#0F172A] truncate">
-              {greeting()}, {user?.name?.split(' ')[0] || 'User'} 👋
+            <h1 className="text-base lg:text-xl font-semibold text-[#0F172A] truncate" suppressHydrationWarning>
+              {mounted ? `${greeting()}, ${user?.name?.split(' ')[0] || 'User'} 👋` : 'Welcome 👋'}
             </h1>
           )}
         </div>

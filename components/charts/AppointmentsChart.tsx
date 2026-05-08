@@ -26,7 +26,7 @@ export function AppointmentsChart({ appointments }: { appointments: PatientAppoi
           observer.disconnect()
         }
       },
-      { rootMargin: '300px' }
+      { rootMargin: '0px' }
     )
 
     if (ref.current) observer.observe(ref.current)

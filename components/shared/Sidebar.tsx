@@ -143,6 +143,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={false}
                     onClick={closeSidebar}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
@@ -203,6 +204,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
                 <Link
                   key={item.name}
                   href={item.href}
+                  prefetch={false}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                     isActive ? 'bg-[#EFF6FF] text-[#2563EB]' : 'text-[#64748B] hover:bg-[#F8FAFC]'
@@ -269,6 +271,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch={false}
                 className={cn(
                   'flex flex-col items-center gap-0.5 text-xs font-medium py-1',
                   isActive ? 'text-[#2563EB]' : 'text-[#64748B]'

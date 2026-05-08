@@ -7,7 +7,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Loader2, User, Activity } from 'lucide-react'
-import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
+import dynamic from 'next/dynamic'
+
+const AddAppointmentModal = dynamic(
+  () => import('@/components/appointments/AddAppointmentModal').then((mod) => mod.AddAppointmentModal),
+  { ssr: false }
+)
 
 interface Props {
   doctors: Profile[]
@@ -100,11 +105,13 @@ export function AvailableDoctors({ doctors, loading }: Props) {
         ))}
       </div>
 
-      <AddAppointmentModal 
-        open={!!selectedDoctor} 
-        onOpenChange={(open) => !open && setSelectedDoctor(null)}
-        preselectedDoctor={selectedDoctor}
-      />
+      {!!selectedDoctor && (
+        <AddAppointmentModal 
+          open={!!selectedDoctor} 
+          onOpenChange={(open) => !open && setSelectedDoctor(null)}
+          preselectedDoctor={selectedDoctor}
+        />
+      )}
     </div>
   )
 }

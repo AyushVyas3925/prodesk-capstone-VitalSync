@@ -16,7 +16,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
 import { useAppointments } from '@/hooks/useAppointments'
 import { AppointmentsChart } from '@/components/charts/AppointmentsChart'
-import { AddAppointmentModal } from '@/components/appointments/AddAppointmentModal'
+import dynamic from 'next/dynamic'
+
+const AddAppointmentModal = dynamic(
+  () => import('@/components/appointments/AddAppointmentModal').then((mod) => mod.AddAppointmentModal),
+  { ssr: false }
+)
 import { AvailableDoctors } from '@/components/dashboard/AvailableDoctors'
 import { useAvailableDoctors } from '@/hooks/useAvailableDoctors'
 import { format } from 'date-fns'
@@ -233,6 +238,7 @@ export default function PatientDashboard() {
                 <h2 className="text-lg font-semibold text-[#0F172A]">Recent Appointments</h2>
                 <Link 
                   href="/dashboard/patient/appointments" 
+                  prefetch={false}
                   className="text-sm font-medium text-[#2563EB] hover:text-[#1E40AF] flex items-center"
                 >
                   View All <ChevronRight className="w-4 h-4 ml-1" />
@@ -352,10 +358,12 @@ export default function PatientDashboard() {
         </div>
       </div>
 
-      <AddAppointmentModal 
-        open={isAddModalOpen} 
-        onOpenChange={setIsAddModalOpen} 
-      />
+      {isAddModalOpen && (
+        <AddAppointmentModal 
+          open={isAddModalOpen} 
+          onOpenChange={setIsAddModalOpen} 
+        />
+      )}
     </div>
     </main>
   )

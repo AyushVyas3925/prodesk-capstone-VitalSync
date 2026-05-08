@@ -17,6 +17,7 @@ export function useAvailableDoctors() {
         .from('profiles')
         .select('*')
         .eq('role', 'doctor')
+        .eq('is_available', true)
         .order('full_name', { ascending: true })
 
       if (error) {
@@ -28,6 +29,22 @@ export function useAvailableDoctors() {
     }
 
     fetchDoctors()
+
+    const channel = supabase
+      .channel('online-doctors')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'profiles',
+        filter: 'role=eq.doctor'
+      }, () => {
+        fetchDoctors()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return { doctors, loading, error }

@@ -23,175 +23,167 @@ import {
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 
-// ─────────────────────────────────────────────
-type FilterType = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
+type AppointmentFilter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
 
-function fmtDate(iso: string) {
-  return format(new Date(iso), 'dd MMM yyyy')
+function extractDate(isoString: string) {
+  return format(new Date(isoString), 'dd MMM yyyy')
 }
-function fmtTime(iso: string) {
-  return format(new Date(iso), 'hh:mm a')
+function extractTime(isoString: string) {
+  return format(new Date(isoString), 'hh:mm a')
 }
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-}
-
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  pending:   { label: 'Pending',   className: 'bg-yellow-100 text-yellow-700 border-none' },
-  confirmed: { label: 'Confirmed', className: 'bg-blue-100   text-blue-700   border-none' },
-  completed: { label: 'Completed', className: 'bg-green-100  text-green-700  border-none' },
-  cancelled: { label: 'Cancelled', className: 'bg-red-100    text-red-700    border-none' },
+function getTwoInitials(fullName: string) {
+  return fullName.split(' ').map((name) => name[0]).join('').toUpperCase().slice(0, 2)
 }
 
-// ─────────────────────────────────────────────
+const UI_BADGES: Record<string, { display: string; classes: string }> = {
+  pending:   { display: 'Pending',   classes: 'bg-yellow-100 text-yellow-700 border-none' },
+  confirmed: { display: 'Confirmed', classes: 'bg-blue-100   text-blue-700   border-none' },
+  completed: { display: 'Completed', classes: 'bg-green-100  text-green-700  border-none' },
+  cancelled: { display: 'Cancelled', classes: 'bg-red-100    text-red-700    border-none' },
+}
+
 export default function MyPatientsPage() {
-  const user    = useAuthStore((s) => s.user)
-  const supabase = createClient()
+  const doctorAuth = useAuthStore((state) => state.user)
+  const supabaseDb = createClient()
 
-  const [appointments, setAppointments] = useState<any[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [filter,       setFilter]       = useState<FilterType>('all')
-  const [mounted,      setMounted]      = useState(false)
-  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [patientList, setPatientList] = useState<any[]>([])
+  const [isFetchingData, setIsFetchingData] = useState(true)
+  const [activeTab, setActiveTab] = useState<AppointmentFilter>('all')
+  const [componentMounted, setComponentMounted] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // ── AI Summarize state ──
-  const [summaryOpen,    setSummaryOpen]    = useState(false)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryText,    setSummaryText]    = useState('')
-  const [summarySource,  setSummarySource]  = useState<'ai'|'template'>('ai')
-  const [summaryAppt,    setSummaryAppt]    = useState<any | null>(null)
-  const [copied,         setCopied]         = useState(false)
+  const [aiModalVisible, setAiModalVisible] = useState(false)
+  const [aiProcessing, setAiProcessing] = useState(false)
+  const [clinicalNotes, setClinicalNotes] = useState('')
+  const [originType, setOriginType] = useState<'ai'|'template'>('ai')
+  const [selectedRecord, setSelectedRecord] = useState<any | null>(null)
+  const [hasCopied, setHasCopied] = useState(false)
 
-  // ── Fetch all appointments for this doctor ──
-  const fetchPatients = useCallback(async () => {
-    if (!user?.id) return
-    setLoading(true)
+  const loadPatients = useCallback(async () => {
+    if (!doctorAuth?.id) return
+    setIsFetchingData(true)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseDb
         .from('patient_appointments')
         .select(`
           *,
           patient_profile:profiles!patient_id(full_name, role)
         `)
-        .eq('doctor_id', user.id)
+        .eq('doctor_id', doctorAuth.id)
         .order('scheduled_at', { ascending: false })
 
       if (error) {
-        console.warn('Error fetching patients:', error.message)
+        console.warn('Failed patients load:', error.message)
         toast.error('❌ Failed to load patient appointments.')
       } else {
-        setAppointments(data || [])
+        setPatientList(data || [])
       }
     } catch (err) {
       console.error(err)
       toast.error('❌ An unexpected error occurred.')
     } finally {
-      setLoading(false)
+      setIsFetchingData(false)
     }
-  }, [user?.id, supabase])
+  }, [doctorAuth?.id, supabaseDb])
 
   useEffect(() => {
-    setMounted(true)
-    fetchPatients()
+    setComponentMounted(true)
+    loadPatients()
 
-    const channel = supabase
+    const dbChannel = supabaseDb
       .channel('doctor_patients_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'patient_appointments' },
-        () => fetchPatients()
+        () => loadPatients()
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabaseDb.removeChannel(dbChannel)
     }
-  }, [fetchPatients, supabase])
+  }, [loadPatients, supabaseDb])
 
-  // ── Mark appointment confirmed / completed ──
-  const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase
+  const changeRecordStatus = async (recordId: string, newStatus: string) => {
+    const { error } = await supabaseDb
       .from('patient_appointments')
-      .update({ status })
-      .eq('id', id)
+      .update({ status: newStatus })
+      .eq('id', recordId)
 
     if (error) {
       toast.error('❌ Failed to update appointment status.')
     } else {
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status } : a))
+      setPatientList((currentList) =>
+        currentList.map((appt) => (appt.id === recordId ? { ...appt, status: newStatus } : appt))
       )
-      toast.success(`✅ Appointment marked as ${status}.`)
+      toast.success(`✅ Appointment marked as ${newStatus}.`)
     }
   }
 
-  // ── AI Summarize ──
-  const handleSummarize = async (appt: any) => {
-    const patientName = appt.patient_profile?.full_name || 'Unknown Patient'
-    setSummaryAppt(appt)
-    setSummaryText('')
-    setSummarySource('ai')
-    setSummaryOpen(true)
-    setSummaryLoading(true)
+  const triggerSummarize = async (record: any) => {
+    const pName = record.patient_profile?.full_name || 'Unknown Patient'
+    setSelectedRecord(record)
+    setClinicalNotes('')
+    setOriginType('ai')
+    setAiModalVisible(true)
+    setAiProcessing(true)
 
     try {
-      const res = await fetch('/api/ai/summarize', {
+      const response = await fetch('/api/ai/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patientName,
-          appointmentDate: fmtDate(appt.scheduled_at),
-          appointmentType: appt.appointment_type,
-          specialty:       appt.specialty || 'General',
-          status:          appt.status,
-          notes:           appt.notes || null,
+          patientName: pName,
+          appointmentDate: extractDate(record.scheduled_at),
+          appointmentType: record.appointment_type,
+          specialty:       record.specialty || 'General',
+          status:          record.status,
+          notes:           record.notes || null,
         }),
       })
 
-      const data = await res.json()
-      if (!res.ok || data.error) {
+      const payload = await response.json()
+      if (!response.ok || payload.error) {
         toast.error('❌ Network error. Please try again.')
-        setSummaryOpen(false)
+        setAiModalVisible(false)
       } else {
-        setSummaryText(data.summary)
-        setSummarySource(data.source === 'template' ? 'template' : 'ai')
+        setClinicalNotes(payload.summary)
+        setOriginType(payload.source === 'template' ? 'template' : 'ai')
       }
     } catch (err) {
       toast.error('❌ Network error while generating summary.')
-      setSummaryOpen(false)
+      setAiModalVisible(false)
     } finally {
-      setSummaryLoading(false)
+      setAiProcessing(false)
     }
   }
 
-  const handleCopy = () => {
-    if (!summaryText) return
-    navigator.clipboard.writeText(summaryText)
-    setCopied(true)
+  const duplicateToClipboard = () => {
+    if (!clinicalNotes) return
+    navigator.clipboard.writeText(clinicalNotes)
+    setHasCopied(true)
     toast.success('✅ Summary copied to clipboard!')
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => setHasCopied(false), 2000)
   }
 
-  // ── Filtered list ──
-  const filtered = filter === 'all'
-    ? appointments
-    : appointments.filter((a) => a.status === filter)
+  const displayedList = activeTab === 'all'
+    ? patientList
+    : patientList.filter((item) => item.status === activeTab)
 
-  // ── Counts for filter pills ──
-  const counts = {
-    all:       appointments.length,
-    pending:   appointments.filter((a) => a.status === 'pending').length,
-    confirmed: appointments.filter((a) => a.status === 'confirmed').length,
-    completed: appointments.filter((a) => a.status === 'completed').length,
-    cancelled: appointments.filter((a) => a.status === 'cancelled').length,
+  const groupSizes = {
+    all:       patientList.length,
+    pending:   patientList.filter((item) => item.status === 'pending').length,
+    confirmed: patientList.filter((item) => item.status === 'confirmed').length,
+    completed: patientList.filter((item) => item.status === 'completed').length,
+    cancelled: patientList.filter((item) => item.status === 'cancelled').length,
   }
 
-  const FILTERS: { key: FilterType; label: string }[] = [
-    { key: 'all',       label: 'All' },
-    { key: 'pending',   label: 'Pending' },
-    { key: 'confirmed', label: 'Confirmed' },
-    { key: 'completed', label: 'Completed' },
-    { key: 'cancelled', label: 'Cancelled' },
+  const TAB_OPTIONS: { key: AppointmentFilter; display: string }[] = [
+    { key: 'all',       display: 'All' },
+    { key: 'pending',   display: 'Pending' },
+    { key: 'confirmed', display: 'Confirmed' },
+    { key: 'completed', display: 'Completed' },
+    { key: 'cancelled', display: 'Cancelled' },
   ]
 
   return (
@@ -199,18 +191,17 @@ export default function MyPatientsPage() {
       <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar
         role="doctor"
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+        mobileOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="lg:pl-60">
         <Navbar
           role="doctor"
-          onMobileMenuToggle={() => setMobileOpen(true)}
+          onMobileMenuToggle={() => setSidebarOpen(true)}
         />
 
         <div className="p-4 lg:p-8 pb-24 lg:pb-8">
-          {/* ── Header ── */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#0F172A] truncate">My Patients</h1>
             <p className="text-[#64748B] mt-1">
@@ -218,157 +209,148 @@ export default function MyPatientsPage() {
             </p>
           </div>
 
-          {!mounted ? (
-            // ── Skeleton Loading ──
+          {!componentMounted ? (
             <>
-              {/* Stat Card Skeletons */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                {[1, 2, 3, 4].map((idx) => (
+                  <Skeleton key={idx} className="h-24 w-full rounded-xl" />
                 ))}
               </div>
-              {/* List Skeletons */}
               <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                {[1, 2, 3].map((idx) => (
+                  <Skeleton key={idx} className="h-20 w-full rounded-xl" />
                 ))}
               </div>
             </>
           ) : (
             <>
-              {/* ── Stat Cards ── */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                 {[
-                  { label: 'Total Booked',  value: counts.all,       icon: <Users className="w-5 h-5 text-[#2563EB]" />,        bg: 'bg-[#EFF6FF]' },
-                  { label: 'Pending',       value: counts.pending,   icon: <Clock className="w-5 h-5 text-[#F59E0B]" />,        bg: 'bg-[#FEF3C7]' },
-                  { label: 'Confirmed',     value: counts.confirmed, icon: <Calendar className="w-5 h-5 text-[#2563EB]" />,     bg: 'bg-[#EFF6FF]' },
-                  { label: 'Completed',     value: counts.completed, icon: <CheckCircle2 className="w-5 h-5 text-[#10B981]" />, bg: 'bg-[#F0FDF4]' },
-                ].map((card) => (
-                  <div key={card.label} className="bg-white rounded-xl p-4 border border-[#E2E8F0] shadow-sm">
+                  { text: 'Total Booked',  num: groupSizes.all,       ico: <Users className="w-5 h-5 text-[#2563EB]" />,        clr: 'bg-[#EFF6FF]' },
+                  { text: 'Pending',       num: groupSizes.pending,   ico: <Clock className="w-5 h-5 text-[#F59E0B]" />,        clr: 'bg-[#FEF3C7]' },
+                  { text: 'Confirmed',     num: groupSizes.confirmed, ico: <Calendar className="w-5 h-5 text-[#2563EB]" />,     clr: 'bg-[#EFF6FF]' },
+                  { text: 'Completed',     num: groupSizes.completed, ico: <CheckCircle2 className="w-5 h-5 text-[#10B981]" />, clr: 'bg-[#F0FDF4]' },
+                ].map((statBox) => (
+                  <div key={statBox.text} className="bg-white rounded-xl p-4 border border-[#E2E8F0] shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wide truncate">{card.label}</span>
-                      <div className={`w-8 h-8 flex-shrink-0 rounded-full ${card.bg} flex items-center justify-center`}>
-                        {card.icon}
+                      <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wide truncate">{statBox.text}</span>
+                      <div className={`w-8 h-8 flex-shrink-0 rounded-full ${statBox.clr} flex items-center justify-center`}>
+                        {statBox.ico}
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-[#0F172A]">{card.value}</p>
+                    <p className="text-2xl font-bold text-[#0F172A]">{statBox.num}</p>
                   </div>
                 ))}
               </div>
 
-              {/* ── Filter Pills ── */}
               <div className="flex items-center gap-2 mb-6 flex-wrap">
                 <Filter className="w-4 h-4 text-[#64748B] flex-shrink-0" />
-                {FILTERS.map(({ key, label }) => (
+                {TAB_OPTIONS.map(({ key, display }) => (
                   <button
                     key={key}
-                    onClick={() => setFilter(key)}
+                    onClick={() => setActiveTab(key)}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      filter === key
+                      activeTab === key
                         ? 'bg-[#2563EB] text-white shadow-sm'
                         : 'bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#2563EB] hover:text-[#2563EB]'
                     }`}
                   >
-                    {label}
+                    {display}
                     <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      filter === key ? 'bg-white/20 text-white' : 'bg-[#F1F5F9] text-[#64748B]'
+                      activeTab === key ? 'bg-white/20 text-white' : 'bg-[#F1F5F9] text-[#64748B]'
                     }`}>
-                      {counts[key]}
+                      {groupSizes[key]}
                     </span>
                   </button>
                 ))}
               </div>
 
-              {/* ── Patient Cards ── */}
-              {loading ? (
+              {isFetchingData ? (
                 <div className="space-y-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                  {[1, 2, 3, 4].map((idx) => (
+                    <Skeleton key={idx} className="h-24 w-full rounded-xl" />
                   ))}
                 </div>
-              ) : filtered.length === 0 ? (
+              ) : displayedList.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-xl border border-[#E2E8F0]">
                   <div className="w-20 h-20 bg-[#EFF6FF] rounded-full flex items-center justify-center mb-4">
                     <Users className="w-10 h-10 text-[#2563EB] opacity-40" />
                   </div>
                   <h2 className="text-lg font-semibold text-[#0F172A]">No patients found</h2>
                   <p className="text-[#64748B] mt-1 text-sm max-w-xs">
-                    {filter === 'all'
+                    {activeTab === 'all'
                       ? 'No patients have booked with you yet. Make sure your profile is set to Online.'
-                      : `No ${filter} appointments right now.`}
+                      : `No ${activeTab} appointments right now.`}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filtered.map((appt) => {
-                    const patientName = appt.patient_profile?.full_name || 'Unknown Patient'
-                    const cfg = STATUS_CONFIG[appt.status] || STATUS_CONFIG['pending']
+                  {displayedList.map((recordItem) => {
+                    const personName = recordItem.patient_profile?.full_name || 'Unknown Patient'
+                    const configData = UI_BADGES[recordItem.status] || UI_BADGES['pending']
 
                     return (
                       <div
-                        key={appt.id}
+                        key={recordItem.id}
                         className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4 lg:p-5
                                    flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition-shadow max-w-full"
                       >
-                        {/* Avatar + Name */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <Avatar className="w-11 h-11 flex-shrink-0">
                             <AvatarFallback className="bg-[#EFF6FF] text-[#2563EB] font-semibold">
-                              {initials(patientName)}
+                              {getTwoInitials(personName)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <p className="text-sm font-bold text-[#0F172A] truncate">{patientName}</p>
+                            <p className="text-sm font-bold text-[#0F172A] truncate">{personName}</p>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-xs text-[#64748B] flex items-center gap-1">
                                 <Calendar className="w-3 h-3 flex-shrink-0" />
-                                {fmtDate(appt.scheduled_at)}
+                                {extractDate(recordItem.scheduled_at)}
                               </span>
                               <span className="text-xs text-[#64748B] flex items-center gap-1">
                                 <Clock className="w-3 h-3 flex-shrink-0" />
-                                {fmtTime(appt.scheduled_at)}
+                                {extractTime(recordItem.scheduled_at)}
                               </span>
                               <span className="text-xs flex items-center gap-1 text-[#64748B]">
-                                {appt.appointment_type === 'Video Call'
+                                {recordItem.appointment_type === 'Video Call'
                                   ? <Video className="w-3 h-3 flex-shrink-0" />
                                   : <Phone className="w-3 h-3 flex-shrink-0" />}
-                                {appt.appointment_type}
+                                {recordItem.appointment_type}
                               </span>
                             </div>
-                            {appt.specialty && (
-                              <p className="text-xs text-[#64748B] mt-0.5 truncate">{appt.specialty}</p>
+                            {recordItem.specialty && (
+                              <p className="text-xs text-[#64748B] mt-0.5 truncate">{recordItem.specialty}</p>
                             )}
                           </div>
                         </div>
 
-                        {/* Status + Actions */}
                         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                          <Badge className={cfg.className}>{cfg.label}</Badge>
+                          <Badge className={configData.classes}>{configData.display}</Badge>
 
-                          {/* AI Summarize Button */}
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleSummarize(appt)}
+                            onClick={() => triggerSummarize(recordItem)}
                             className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400 gap-1"
                           >
                             <Sparkles className="w-3 h-3" />
                             Summarize
                           </Button>
 
-                          {appt.status === 'pending' && (
+                          {recordItem.status === 'pending' && (
                             <Button
                               size="sm"
-                              onClick={() => updateStatus(appt.id, 'confirmed')}
+                              onClick={() => changeRecordStatus(recordItem.id, 'confirmed')}
                               className="h-7 text-xs bg-[#2563EB] hover:bg-[#1E40AF]"
                             >
                               Confirm
                             </Button>
                           )}
-                          {appt.status === 'confirmed' && (
+                          {recordItem.status === 'confirmed' && (
                             <Button
                               size="sm"
-                              onClick={() => updateStatus(appt.id, 'completed')}
+                              onClick={() => changeRecordStatus(recordItem.id, 'completed')}
                               className="h-7 text-xs bg-[#10B981] hover:bg-[#059669]"
                             >
                               Complete ✓
@@ -385,8 +367,7 @@ export default function MyPatientsPage() {
         </div>
       </div>
 
-      {/* ── AI Summary Dialog ── */}
-      <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
+      <Dialog open={aiModalVisible} onOpenChange={setAiModalVisible}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-[#0F172A]">
@@ -394,17 +375,17 @@ export default function MyPatientsPage() {
               AI Clinical Summary
             </DialogTitle>
             <DialogDescription className="text-[#64748B]">
-              {summaryAppt && (
+              {selectedRecord && (
                 <>
-                  {summaryAppt.patient_profile?.full_name || 'Unknown Patient'} —{' '}
-                  {fmtDate(summaryAppt.scheduled_at)}
+                  {selectedRecord.patient_profile?.full_name || 'Unknown Patient'} —{' '}
+                  {extractDate(selectedRecord.scheduled_at)}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-2">
-            {summaryLoading ? (
+            {aiProcessing ? (
               <div className="space-y-3">
                 <Skeleton className="h-4 w-full rounded" />
                 <Skeleton className="h-4 w-[90%] rounded" />
@@ -418,25 +399,24 @@ export default function MyPatientsPage() {
               </div>
             ) : (
               <>
-                {/* Source badge */}
                 <div className="flex items-center gap-2 mb-2">
-                  {summarySource === 'ai'
+                  {originType === 'ai'
                     ? <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full"><Sparkles className="w-2.5 h-2.5" />AI Generated</span>
                     : <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">📋 Template Summary</span>
                   }
                 </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-[#0F172A] leading-relaxed whitespace-pre-wrap">
-                  {summaryText}
+                  {clinicalNotes}
                 </div>
                 <div className="flex justify-end mt-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleCopy}
+                    onClick={duplicateToClipboard}
                     className="gap-1.5 text-[#64748B] hover:text-[#0F172A]"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? 'Copied!' : 'Copy'}
+                    {hasCopied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {hasCopied ? 'Copied!' : 'Copy'}
                   </Button>
                 </div>
               </>

@@ -24,23 +24,23 @@ import { format } from 'date-fns'
 
 export default function AppointmentsPage() {
   const { appointments, loading, refetch } = useAppointments()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [editingAppointment, setEditingAppointment] = useState<PatientAppointment | null>(null)
-  const [deletingAppointment, setDeletingAppointment] = useState<{id: string, name: string} | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [selectedForEdit, setSelectedForEdit] = useState<PatientAppointment | null>(null)
+  const [selectedForDelete, setSelectedForDelete] = useState<{id: string, name: string} | null>(null)
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const applyStatusStyle = (currentStatus: string) => {
+    switch (currentStatus) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none capitalize">{status}</Badge>
+        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none capitalize">{currentStatus}</Badge>
       case 'confirmed':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none capitalize">{status}</Badge>
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none capitalize">{currentStatus}</Badge>
       case 'cancelled':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none capitalize">{status}</Badge>
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none capitalize">{currentStatus}</Badge>
       case 'completed':
-        return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none capitalize">{status}</Badge>
+        return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none capitalize">{currentStatus}</Badge>
       default:
-        return <Badge variant="secondary" className="capitalize">{status}</Badge>
+        return <Badge variant="secondary" className="capitalize">{currentStatus}</Badge>
     }
   }
 
@@ -49,14 +49,14 @@ export default function AppointmentsPage() {
       <div className="min-h-screen bg-[#F8FAFC]">
       <Sidebar 
         role="patient" 
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+        mobileOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
       />
       
       <div className="lg:pl-60">
         <Navbar 
           role="patient"
-          onMobileMenuToggle={() => setMobileOpen(true)}
+          onMobileMenuToggle={() => setMenuOpen(true)}
         />
         
         <div className="p-4 lg:p-8 pb-20 lg:pb-8">
@@ -66,7 +66,7 @@ export default function AppointmentsPage() {
               <p className="text-[#64748B] mt-1">Manage your upcoming and past medical consultations.</p>
             </div>
             <Button 
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => setShowAddForm(true)}
               className="bg-[#2563EB] hover:bg-[#1E40AF] shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -77,8 +77,8 @@ export default function AppointmentsPage() {
           <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
             {loading ? (
               <div className="p-4 space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                {[1, 2, 3, 4, 5].map((idx) => (
+                  <Skeleton key={idx} className="h-12 w-full" />
                 ))}
               </div>
             ) : appointments.length === 0 ? (
@@ -91,7 +91,7 @@ export default function AppointmentsPage() {
                   Schedule your first consultation with our specialist doctors today.
                 </p>
                 <Button 
-                  onClick={() => setIsAddModalOpen(true)}
+                  onClick={() => setShowAddForm(true)}
                   variant="outline"
                   className="border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF]"
                 >
@@ -111,25 +111,25 @@ export default function AppointmentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {appointments.map((appt) => (
-                    <TableRow key={appt.id} className="hover:bg-[#F8FAFC] transition-colors">
-                      <TableCell className="font-medium text-[#0F172A]">{appt.doctor_name}</TableCell>
-                      <TableCell className="text-[#64748B]">{appt.specialty}</TableCell>
+                  {appointments.map((consult) => (
+                    <TableRow key={consult.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <TableCell className="font-medium text-[#0F172A]">{consult.doctor_name}</TableCell>
+                      <TableCell className="text-[#64748B]">{consult.specialty}</TableCell>
                       <TableCell className="text-[#0F172A]">
-                        {format(new Date(appt.scheduled_at), 'dd MMM yyyy, p')}
+                        {format(new Date(consult.scheduled_at), 'dd MMM yyyy, p')}
                       </TableCell>
                       <TableCell>
                         <span className="text-sm px-2 py-1 bg-[#F1F5F9] rounded text-[#475569]">
-                          {appt.appointment_type}
+                          {consult.appointment_type}
                         </span>
                       </TableCell>
-                      <TableCell>{getStatusBadge(appt.status)}</TableCell>
+                      <TableCell>{applyStatusStyle(consult.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => setEditingAppointment(appt)}
+                            onClick={() => setSelectedForEdit(consult)}
                             className="text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF]"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -137,7 +137,7 @@ export default function AppointmentsPage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => setDeletingAppointment({id: appt.id, name: appt.doctor_name})}
+                            onClick={() => setSelectedForDelete({id: consult.id, name: consult.doctor_name})}
                             className="text-[#64748B] hover:text-red-600 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -154,23 +154,23 @@ export default function AppointmentsPage() {
       </div>
 
       <AddAppointmentModal 
-        open={isAddModalOpen} 
-        onOpenChange={setIsAddModalOpen} 
+        open={showAddForm} 
+        onOpenChange={setShowAddForm} 
         onSuccess={refetch}
       />
       
       <EditAppointmentModal 
-        appointment={editingAppointment} 
-        open={!!editingAppointment} 
-        onOpenChange={(open) => !open && setEditingAppointment(null)} 
+        appointment={selectedForEdit} 
+        open={!!selectedForEdit} 
+        onOpenChange={(isOpen) => !isOpen && setSelectedForEdit(null)} 
         onSuccess={refetch}
       />
       
       <DeleteConfirmDialog 
-        appointmentId={deletingAppointment?.id || null} 
-        doctorName={deletingAppointment?.name || null} 
-        open={!!deletingAppointment} 
-        onOpenChange={(open) => !open && setDeletingAppointment(null)} 
+        appointmentId={selectedForDelete?.id || null} 
+        doctorName={selectedForDelete?.name || null} 
+        open={!!selectedForDelete} 
+        onOpenChange={(isOpen) => !isOpen && setSelectedForDelete(null)} 
         onSuccess={refetch}
       />
     </div>

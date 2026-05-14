@@ -11,39 +11,37 @@ export function useAvailableDoctors() {
   useEffect(() => {
     const supabase = createClient()
 
-    async function fetchDoctors() {
+    async function loadActivePractitioners() {
       setLoading(true)
-      const { data, error } = await supabase
+      const { data, error: dbError } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'doctor')
         .eq('is_available', true)
         .order('full_name', { ascending: true })
 
-      if (error) {
-        setError(error.message)
+      if (dbError) {
+        setError(dbError.message)
       } else {
         setDoctors(data || [])
       }
       setLoading(false)
     }
 
-    fetchDoctors()
+    loadActivePractitioners()
 
-    const channel = supabase
+    const liveUpdates = supabase
       .channel('online-doctors')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'profiles',
         filter: 'role=eq.doctor'
-      }, () => {
-        fetchDoctors()
-      })
+      }, () => loadActivePractitioners())
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(liveUpdates)
     }
   }, [])
 

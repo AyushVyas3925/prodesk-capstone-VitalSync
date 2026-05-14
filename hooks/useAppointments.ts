@@ -8,96 +8,99 @@ export function useAppointments() {
   const [appointments, setAppointments] = useState<PatientAppointment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const user = useAuthStore((s) => s.user)
-  const supabase = createClient()
+  
+  const currentUser = useAuthStore((state) => state.user)
+  const supabaseClient = createClient()
 
-  // READ — fetch all appointments
-  const fetchAppointments = useCallback(async () => {
-    if (!user?.id) return
+  const retrievePatientSchedule = useCallback(async () => {
+    if (!currentUser?.id) return
     setLoading(true)
-    const { data, error } = await supabase
+    
+    const { data, error: fetchErr } = await supabaseClient
       .from('patient_appointments')
       .select('*')
-      .eq('patient_id', user.id)
+      .eq('patient_id', currentUser.id)
       .order('scheduled_at', { ascending: true })
-    if (error) setError(error.message)
-    else setAppointments(data || [])
+      
+    if (fetchErr) {
+      setError(fetchErr.message)
+    } else {
+      setAppointments(data || [])
+    }
     setLoading(false)
-  }, [user?.id, supabase])
+  }, [currentUser?.id, supabaseClient])
 
   useEffect(() => { 
-    fetchAppointments() 
+    retrievePatientSchedule() 
     
-    // Subscribe to real-time changes
-    const channel = supabase
+    const subscription = supabaseClient
       .channel('patient_appointments_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'patient_appointments' },
-        () => {
-          fetchAppointments()
-        }
+        () => retrievePatientSchedule()
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabaseClient.removeChannel(subscription)
     }
-  }, [fetchAppointments, supabase])
+  }, [retrievePatientSchedule, supabaseClient])
 
-  // CREATE — add new appointment
-  const addAppointment = async (
-    data: Omit<PatientAppointment, 'id' | 'patient_id' | 'created_at'>
+  const bookNewConsultation = async (
+    appointmentDetails: Omit<PatientAppointment, 'id' | 'patient_id' | 'created_at'>
   ) => {
-    if (!user?.id) return
-    const { data: newAppt, error } = await supabase
+    if (!currentUser?.id) return
+    
+    const { data: createdRecord, error: insertErr } = await supabaseClient
       .from('patient_appointments')
-      .insert({ ...data, patient_id: user.id })
+      .insert({ ...appointmentDetails, patient_id: currentUser.id })
       .select()
       .single()
-    if (error) throw error
-    // Optimistic update — instantly add to UI
-    setAppointments(prev => [...prev, newAppt])
-    return newAppt
+      
+    if (insertErr) throw insertErr
+    
+    setAppointments(currentList => [...currentList, createdRecord])
+    return createdRecord
   }
 
-  // UPDATE — edit existing appointment
-  const updateAppointment = async (
-    id: string,
-    data: Partial<PatientAppointment>
+  const rescheduleOrModify = async (
+    recordId: string,
+    updates: Partial<PatientAppointment>
   ) => {
-    const { data: updated, error } = await supabase
+    const { data: updatedRecord, error: updateErr } = await supabaseClient
       .from('patient_appointments')
-      .update(data)
-      .eq('id', id)
+      .update(updates)
+      .eq('id', recordId)
       .select()
       .single()
-    if (error) throw error
-    // Optimistic update — instantly update in UI
-    setAppointments(prev => 
-      prev.map(a => a.id === id ? updated : a)
+      
+    if (updateErr) throw updateErr
+    
+    setAppointments(currentList => 
+      currentList.map(item => item.id === recordId ? updatedRecord : item)
     )
-    return updated
+    return updatedRecord
   }
 
-  // DELETE — remove appointment
-  const deleteAppointment = async (id: string) => {
-    const { error } = await supabase
+  const cancelAndRemove = async (recordId: string) => {
+    const { error: deleteErr } = await supabaseClient
       .from('patient_appointments')
       .delete()
-      .eq('id', id)
-    if (error) throw error
-    // Optimistic update — instantly remove from UI
-    setAppointments(prev => prev.filter(a => a.id !== id))
+      .eq('id', recordId)
+      
+    if (deleteErr) throw deleteErr
+    
+    setAppointments(currentList => currentList.filter(item => item.id !== recordId))
   }
 
   return {
     appointments,
     loading,
     error,
-    addAppointment,
-    updateAppointment,
-    deleteAppointment,
-    refetch: fetchAppointments,
+    addAppointment: bookNewConsultation,
+    updateAppointment: rescheduleOrModify,
+    deleteAppointment: cancelAndRemove,
+    refetch: retrievePatientSchedule,
   }
 }

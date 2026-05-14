@@ -16,7 +16,7 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    /* VitalSync Blue — #2563EB */
+    
     --primary: oklch(0.546 0.215 264.4);
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);

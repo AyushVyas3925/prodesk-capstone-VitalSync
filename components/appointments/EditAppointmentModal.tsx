@@ -35,7 +35,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
   const { updateAppointment } = useAppointments()
   const [loading, setLoading] = useState(false)
 
-  // Bulletproof timezone offset generator
+  
   const toPostgresDate = (dateTimeLocalStr: string) => {
     if (!dateTimeLocalStr) return new Date().toISOString()
     const d = new Date(dateTimeLocalStr)
@@ -70,7 +70,7 @@ export function EditAppointmentModal({ appointment, open, onOpenChange, onSucces
     }
   }
 
-  // Format date for datetime-local input strictly in local time (YYYY-MM-DDThh:mm)
+  
   const formatLocalDatetime = (dateString: string) => {
     if (!dateString) return ''
     const d = new Date(dateString)

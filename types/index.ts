@@ -16,7 +16,7 @@ export interface Profile {
   updated_at: string
 }
 
-// ── Shared ──────────────────────────────────────────────
+
 export type AppointmentStatus = 
   'pending' | 'confirmed' | 'cancelled' | 'completed'
 
@@ -25,7 +25,7 @@ export type AppointmentType = 'In-Person' | 'Video Call'
 export interface PatientAppointment {
   id: string
   patient_id: string
-  doctor_id?: string // New: link to real doctor
+  doctor_id?: string 
   doctor_name: string
   specialty: string
   scheduled_at: string

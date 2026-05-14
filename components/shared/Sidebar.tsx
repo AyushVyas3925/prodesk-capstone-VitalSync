@@ -29,7 +29,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
 
-  // ── Stable client — never recreate on re-render ──
+  
   const supabaseRef = useRef(createClient())
   const supabase = supabaseRef.current
 
@@ -59,29 +59,29 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
       }
       getStatus()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, user?.id]) // ← supabase intentionally excluded (stable ref)
+  
+  }, [role, user?.id]) 
 
   const toggleAvailability = async (checked: boolean) => {
     if (!user?.id || syncing) return
     setSyncing(true)
-    setIsAvailable(checked) // optimistic update
+    setIsAvailable(checked) 
 
-    // upsert with ALL required fields to avoid NOT NULL constraint failures
+    
     const { error } = await supabase
       .from('profiles')
       .upsert(
         {
           id:           user.id,
-          full_name:    user.name,   // from authStore — always correct
-          role:         role,        // from sidebar prop
+          full_name:    user.name,   
+          role:         role,        
           is_available: checked,
         },
         { onConflict: 'id' }
       )
 
     if (error) {
-      setIsAvailable(!checked) // revert on failure
+      setIsAvailable(!checked) 
       toast.error('Failed to update status: ' + error.message)
     } else {
       toast.success(`Status: ${checked ? '🟢 Online' : '⚫ Offline'}`)
@@ -117,7 +117,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* ── Mobile Drawer (Nuclear Option: Style zIndex) ── */}
+      {}
       {isSidebarOpen && (
         <div className="fixed inset-0 lg:hidden" style={{ zIndex: 100000 }}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeSidebar} />
@@ -186,7 +186,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
         </div>
       )}
 
-      {/* ── Desktop Sidebar ── */}
+      {}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col bg-white border-r border-[#E2E8F0] z-20">
         <div className="flex flex-col h-full">
           <div className="flex items-center gap-2 px-6 h-16 border-b border-[#E2E8F0]">
@@ -261,7 +261,7 @@ export function Sidebar({ role, mobileOpen, onClose }: SidebarProps) {
         </div>
       </aside>
 
-      {/* ── Mobile Bottom Nav ── */}
+      {}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] px-4 py-2 z-[40]">
         <div className="flex items-center justify-around">
           {navItems.slice(0, 4).map((item) => {

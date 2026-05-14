@@ -37,11 +37,11 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
   const [doctors, setDoctors] = useState<{id: string, full_name: string, specialty: string}[]>([])
   const supabase = createClient()
 
-  // Bulletproof timezone offset generator
+  
   const toPostgresDate = (dateTimeLocalStr: string) => {
     if (!dateTimeLocalStr) return new Date().toISOString()
     const d = new Date(dateTimeLocalStr)
-    // Send standard ISO which is natively supported everywhere
+    
     return d.toISOString()
   }
 
@@ -64,14 +64,14 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
     const formData = new FormData(e.currentTarget)
     
     const selectedDoctorId = formData.get('doctor_id') as string
-    // If preselectedDoctor is used, and the user didn't change it, it might just use preselectedDoctor.id
+    
     const finalDoctorId = selectedDoctorId || preselectedDoctor?.id
     
-    // Find doctor name from the fetched list or fallback to preselected
+    
     const foundDoc = doctors.find(d => d.id === finalDoctorId)
     const doctor_name = foundDoc ? `Dr. ${foundDoc.full_name}` : preselectedDoctor?.name || 'Unknown Doctor'
     
-    // If we know the doctor's specialty, use it, else use the form's specialty
+    
     const formSpecialty = formData.get('specialty') as string
     const specialty = foundDoc?.specialty || formSpecialty || 'General Medicine'
 
@@ -82,7 +82,7 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
       appointment_type: formData.get('appointment_type') as 'In-Person' | 'Video Call',
       notes: formData.get('notes') as string,
       status: 'pending' as const,
-      doctor_id: finalDoctorId, // Always links to real account now
+      doctor_id: finalDoctorId, 
     }
 
     try {
@@ -127,11 +127,11 @@ export function AddAppointmentModal({ open, onOpenChange, preselectedDoctor, onS
                 </SelectContent>
               </Select>
             )}
-            {/* hidden input so FormData can still grab it if preselected */}
+            {}
             {preselectedDoctor && <input type="hidden" name="doctor_id" value={preselectedDoctor.id} />}
           </div>
 
-          {/* Hide specialty if we already know it from the doctor */}
+          {}
           {!preselectedDoctor && (
             <div className="space-y-2">
               <Label htmlFor="specialty">Specialty</Label>

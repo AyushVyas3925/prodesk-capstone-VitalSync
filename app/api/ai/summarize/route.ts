@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// ── Fallback template when Gemini quota is exhausted ──────────────────────────
+
 function templateSummary(
   patientName: string,
   appointmentDate: string,
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
-      // No key at all — return template summary
+      
       return NextResponse.json({
         summary: templateSummary(patientName, appointmentDate, appointmentType, specialty, status, notes),
         source: 'template',
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Rate-limited or any Gemini error → fallback to template
+    
     if (!geminiRes.ok) {
       const errBody = await geminiRes.json().catch(() => ({}))
       const errMsg  = (errBody as any)?.error?.message || 'Unknown error'

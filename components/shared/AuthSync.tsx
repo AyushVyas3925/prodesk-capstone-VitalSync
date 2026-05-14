@@ -10,7 +10,7 @@ export function AuthSync() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Initial fetch of the session
+    
     const syncSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession()
       
@@ -27,7 +27,7 @@ export function AuthSync() {
 
     syncSession()
 
-    // Listen for auth state changes (login, logout, token refresh)
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const userRole = (session.user.user_metadata?.role as Role) || 'patient'
@@ -47,5 +47,5 @@ export function AuthSync() {
     }
   }, [setUser, supabase.auth])
 
-  return null // This component only handles side effects
+  return null 
 }

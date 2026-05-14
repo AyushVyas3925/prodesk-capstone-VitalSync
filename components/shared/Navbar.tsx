@@ -34,9 +34,9 @@ export function Navbar({
   return (
     <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-10">
       <div className="px-4 lg:px-8 h-16 flex items-center justify-between gap-3">
-        {/* Left */}
+        {}
         <div className="flex items-center gap-2 min-w-0">
-          {/* Burger — min 44×44px touch target */}
+          {}
           <button
             onClick={(e) => {
               e.preventDefault()
@@ -51,7 +51,7 @@ export function Navbar({
             <Menu className="w-6 h-6" />
           </button>
 
-          {/* Greeting — truncates on small screens */}
+          {}
           {role === 'doctor' ? (
             <h1 className="text-base lg:text-xl font-semibold text-[#0F172A] truncate">
               Today&apos;s Overview
@@ -63,9 +63,9 @@ export function Navbar({
           )}
         </div>
 
-        {/* Right */}
+        {}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Search — hidden on mobile, visible md+ */}
+          {}
           {role === 'patient' && (
             <div className="hidden md:block relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
@@ -77,13 +77,13 @@ export function Navbar({
             </div>
           )}
 
-          {/* Notifications */}
+          {}
           <button aria-label="Notifications" className="relative min-w-[44px] min-h-[44px] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-[#EF4444] rounded-full" />
           </button>
 
-          {/* Avatar */}
+          {}
           <Avatar className="hidden sm:flex w-9 h-9 flex-shrink-0">
             <AvatarFallback className="bg-[#2563EB] text-white text-xs font-semibold">
               {initials}

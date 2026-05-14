@@ -31,7 +31,7 @@ export function LoginForm() {
     setLoading(true)
     setError(null)
 
-    // Safety timeout – if nothing happens in 10s, stop loading
+    
     const timer = setTimeout(() => {
       setLoading(false)
       setError('Request timed out. Please check your internet connection and try again.')
@@ -52,7 +52,7 @@ export function LoginForm() {
       if (data.user) {
         const storedRole = (data.user.user_metadata?.role as 'patient' | 'doctor') || null
         
-        // Role mismatch check
+        
         if (storedRole && storedRole !== role) {
           setError(`This account is registered as a "${storedRole}". Please select "${storedRole}" above and try again.`)
           await supabase.auth.signOut()
@@ -73,8 +73,8 @@ export function LoginForm() {
           role: finalRole,
         })
 
-        // ── Fix existing profiles that have email as full_name ──
-        // This self-heals on every login, no manual DB fix needed
+        
+        
         await supabase.from('profiles').upsert(
           {
             id:        data.user.id,
@@ -97,11 +97,11 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* ── Left → Form ── */}
+      {}
       <div className="flex-1 lg:w-[60%] flex items-center justify-center p-6 lg:p-12 bg-white">
         <div className="w-full max-w-md">
 
-          {/* Logo */}
+          {}
           <div className="flex items-center gap-2 mb-12">
             <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center shadow-lg">
               <Heart className="w-6 h-6 text-white" fill="white" />
@@ -115,7 +115,7 @@ export function LoginForm() {
               <p className="text-[#64748B]">Sign in to your VitalSync account</p>
             </div>
 
-            {/* Role Toggle */}
+            {}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -142,7 +142,7 @@ export function LoginForm() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
-              {/* Email */}
+              {}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[#0F172A]">Email</label>
                 <div className="relative">
@@ -159,7 +159,7 @@ export function LoginForm() {
                 </div>
               </div>
 
-              {/* Password */}
+              {}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[#0F172A]">Password</label>
                 <div className="relative">
@@ -183,7 +183,7 @@ export function LoginForm() {
                 </div>
               </div>
 
-              {/* Remember + Forgot */}
+              {}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Checkbox id="remember" />
@@ -224,10 +224,10 @@ export function LoginForm() {
         </div>
       </div>
 
-      {/* ── Right → Hero ── */}
+      {}
       <div className="hidden lg:flex lg:w-[40%] bg-gradient-to-br from-[#1E40AF] to-[#2563EB] p-12 items-center justify-center relative overflow-hidden">
         <div className="relative z-10 space-y-6 max-w-sm w-full">
-          {/* Stat Cards */}
+          {}
           {[
             { icon: <Stethoscope className="w-6 h-6 text-white" />, value: '2,400+', label: 'Doctors Available' },
             { icon: <Star className="w-6 h-6 text-white" fill="white" />, value: '98%', label: 'Patient Satisfaction' },
@@ -255,7 +255,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        {/* Decorations */}
+        {}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
       </div>

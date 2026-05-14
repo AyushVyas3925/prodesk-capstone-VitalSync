@@ -19,7 +19,7 @@ interface Props {
 
 export function AppointmentsChartCore({ appointments }: Props) {
   const chartData = useMemo(() => {
-    // Last 6 months
+    
     const last6Months = Array.from({ length: 6 }).map((_, i) => {
       const date = subMonths(new Date(), 5 - i)
       return {

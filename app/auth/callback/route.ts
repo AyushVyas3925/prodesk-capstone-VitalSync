@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const role = searchParams.get('role') || 'patient'
-  // if "next" is in search params, use it as the redirection URL
+  
   const next = searchParams.get('next') ?? `/dashboard/${role}`
 
   if (code) {
@@ -25,9 +25,9 @@ export async function GET(request: Request) {
                 cookieStore.set(name, value, options)
               )
             } catch (error) {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
+              
+              
+              
             }
           },
         },
@@ -37,8 +37,8 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      // After successful login, check if user has a role. 
-      // If not, it's a new sign-up via Google, so we set the initial role.
+      
+      
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user && !user.user_metadata?.role) {
@@ -47,12 +47,12 @@ export async function GET(request: Request) {
         })
       }
 
-      // Redirect based on the final determined role
+      
       const finalRole = user?.user_metadata?.role || role
       return NextResponse.redirect(`${origin}/dashboard/${finalRole}`)
     }
   }
 
-  // return the user to an error page with instructions
+  
   return NextResponse.redirect(`${origin}/login?error=auth-code-error`)
 }

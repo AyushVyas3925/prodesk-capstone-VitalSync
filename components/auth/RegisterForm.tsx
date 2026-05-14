@@ -42,7 +42,7 @@ export function RegisterForm() {
       if (authError) throw authError
 
       if (data.user) {
-        // ── Explicitly save profile so full_name is NEVER null/email ──
+        
         await supabase.from('profiles').upsert({
           id:           data.user.id,
           full_name:    fullName,
@@ -62,11 +62,11 @@ export function RegisterForm() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* ── Left → Form ── */}
+      {}
       <div className="flex-1 lg:w-[60%] flex items-center justify-center p-6 lg:p-12 bg-white">
         <div className="w-full max-w-md">
 
-          {/* Logo */}
+          {}
           <div className="flex items-center gap-2 mb-12">
             <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center shadow-lg">
               <Heart className="w-6 h-6 text-white" fill="white" />
@@ -80,7 +80,7 @@ export function RegisterForm() {
               <p className="text-[#64748B]">Join VitalSync and manage your health</p>
             </div>
 
-            {/* Role Toggle */}
+            {}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -114,7 +114,7 @@ export function RegisterForm() {
               </div>
             ) : (
               <form onSubmit={handleRegister} className="space-y-4">
-                {/* Full Name */}
+                {}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#0F172A]">Full Name</label>
                   <div className="relative">
@@ -130,7 +130,7 @@ export function RegisterForm() {
                   </div>
                 </div>
 
-                {/* Email */}
+                {}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#0F172A]">Email</label>
                   <div className="relative">
@@ -147,7 +147,7 @@ export function RegisterForm() {
                   </div>
                 </div>
 
-                {/* Password */}
+                {}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#0F172A]">Password</label>
                   <div className="relative">
@@ -199,7 +199,7 @@ export function RegisterForm() {
         </div>
       </div>
 
-      {/* ── Right → Hero ── */}
+      {}
       <div className="hidden lg:flex lg:w-[40%] bg-gradient-to-br from-[#1E40AF] to-[#2563EB] p-12 items-center justify-center relative overflow-hidden">
         <div className="relative z-10 space-y-6 max-w-sm w-full">
           {[
